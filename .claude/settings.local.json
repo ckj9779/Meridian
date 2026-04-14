@@ -44,7 +44,25 @@
       "Bash(wsl.exe -e bash -c \"cd /mnt/d/Meridian && git add -A && echo '===STATUS===' && git status && echo '===DIFFSTAT===' && git diff --cached --stat\")",
       "Bash(wsl.exe -e bash -c \"cd /mnt/d/Meridian && git diff --cached CLAUDE.md\")",
       "Bash(wsl.exe -e bash -c \"cd /mnt/d/Meridian && git add -A && git diff --cached CLAUDE.md | head -50\")",
-      "Bash(wsl.exe -e bash -c \"cd /mnt/d/Meridian && git add -A && git diff --cached --stat\")"
+      "Bash(wsl.exe -e bash -c \"cd /mnt/d/Meridian && git add -A && git diff --cached --stat\")",
+      "Bash(wsl.exe -e bash -c 'cd /mnt/d/Meridian && git commit -S -m \"docs: apply routing actions from git-setup insight ledger\" -m \"- Update CLAUDE.md environment table with verified tool versions and:*)",
+      "Bash(wsl.exe -e bash -c \"cd /mnt/d/Meridian && git log --show-signature -1 2>&1 | head -8\")",
+      "Bash(npm install:*)",
+      "Bash(node .meridian/db-connectivity-test.js)",
+      "Bash(npm --version)",
+      "Bash(npm init:*)",
+      "Bash(node -e \"const d=require\\('./.meridian/data/seed/meridian-seed-data.json'\\); console.log\\(Object.keys\\(d\\).join\\('\\\\n'\\)\\);\")",
+      "Bash(npx tsc:*)",
+      "Bash(npx tsx:*)",
+      "Bash(node --env-file=.env.local .meridian/verify-tables.mjs)",
+      "Bash(node -e ':*)",
+      "Bash(node --env-file=.env.local .meridian/verify-counts.mjs)",
+      "Bash(rm .meridian/verify-counts.mjs)",
+      "Bash(curl -sS http://localhost:3000/health)",
+      "Bash(wsl.exe -e bash -c \"cd /mnt/d/Meridian && git status --short && echo '---diffstat \\(unstaged\\)---' && git diff --stat\")",
+      "Bash(wsl.exe -e bash -c \"cd /mnt/d/Meridian && git diff .meridian/insights/2026-04-14_routing-actions.md | head -60\")",
+      "Bash(wsl.exe -e bash -c \"cd /mnt/d/Meridian && git diff docs/GITOPS.md\")",
+      "Bash(wsl.exe -e bash -c \"cd /mnt/d/Meridian && git add -A && git status --short && echo '---STAT---' && git diff --cached --stat\")"
     ]
   }
 }

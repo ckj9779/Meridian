@@ -235,7 +235,7 @@ and compiled views lenses. Aligned to SAD Section 8.
 
 ## File Headers — Pre-Commit Enforcement
 
-Every source file must have a copyright header as its first line(s). The pre-commit hook at `.meridian/check-headers.sh` validates this on every commit.
+Every source file must have a copyright header as its first line(s). The pre-commit hook at `.meridian/hooks/check-headers.sh` validates this on every commit.
 
 | File type | Header |
 |-----------|--------|

@@ -34,3 +34,41 @@
 **Proposed action:** Respect the user's revert as D24 in action. Do not re-apply the header or flat-layout references to CLAUDE.md. Limit CLAUDE.md edits to the Environment table as the task plan specifies. The `.meridian/headers/` references are now a deliberate choice, not a gap.
 **Severity:** info
 
+---
+
+## Routing Summary
+
+This session was a pure *application* task — the routing decisions to apply came from the git-setup ledger. No new doc-update proposals were generated that require further routing, with one exception:
+
+| Insight | Target file | Section | Action needed |
+|---------|-------------|---------|---------------|
+| INS-001 | — | — | No action. Starting-state validation only. |
+| INS-002 | `docs/GITOPS.md` (meta) | D26 description | Minor: D26 description mentioned `.mjs` as a missing extension, but `.mjs` was already in the table. Clarify in decision register if D26 is formally recorded. |
+| INS-003 | `docs/GITOPS.md:152` | File Headers intro paragraph | **Open follow-up:** change `.meridian/check-headers.sh` to `.meridian/hooks/check-headers.sh`. Out of scope this session (insertions-only rule). Suggested for a future micro-cleanup commit. |
+| INS-004 | — | — | Resolved mid-session by owner (line 50 updated before commit). No action. |
+
+**Net result:** 1 open routing item (INS-003). Ledger is primarily a record, not a proposal.
+
+## Session Statistics
+
+| Metric | Value |
+|--------|-------|
+| Total insights captured | 4 |
+| Environment discoveries | 0 |
+| Assumptions validated | 1 (INS-001) |
+| Assumptions invalidated | 0 |
+| Convention gaps found | 3 (INS-002, INS-003, INS-004) |
+| Failures and fixes | 0 |
+| Recommendations | 0 |
+| Security observations | 0 |
+| Dependencies flagged | 0 |
+| Routing actions applied | 8 (Actions 1 through 8 per task plan) |
+| Files modified | 5 (`CLAUDE.md`, `docs/GITOPS.md`, `.claude/settings.local.json`, `.meridian/insights/2026-04-14_git-setup.md`, `.meridian/insights/2026-04-14_routing-actions.md`) |
+| Files created | 2 (`.gitattributes`, `.meridian/insights/2026-04-14_routing-actions.md`) |
+| Decisions referenced | D26 (header extensions), D27 (reserved in commit msg), D28 (`.gitattributes`), D29 (SSH-from-WSL push) |
+| Prior ledger committed | Yes — `.meridian/insights/2026-04-14_git-setup.md` committed with routing summary/stats intact |
+| Commit hash | `2086bc9ae531ed6f5fec48e8341cc78c5ba12ce3` (short: `2086bc9`) |
+| Signature verified locally | Yes — `Good signature from "Charles K. Johnson <mobile@charleskjohnson.com>"` |
+| Signature verified on GitHub | Yes — `{"verified": true, "reason": "valid"}` |
+| Pushed to | `github.com/ckj9779/Meridian` → `main` (`cadddfc..2086bc9`) |
+

@@ -1,0 +1,760 @@
+{
+  "_meta": {
+    "generated": "2026-04-14",
+    "generated_by": "Session 07 project session",
+    "covers_through": "Session 06",
+    "notes": "Session 07 decisions (D30-D32) listed as pending. Update after session closes."
+  },
+
+  "decisions": [
+    {
+      "id": "D01",
+      "summary": "CAG as primary architecture candidate",
+      "rationale": "Corpus size (~300K emails compiling to ~200 articles) fits within context window. CAG produces more consistent, coherent query results than RAG by eliminating the lossy retrieval step. pgvector and Voyage AI embeddings no longer required.",
+      "session": 1,
+      "date": "2026-04-12",
+      "status": "superseded",
+      "superseded_by": "D04",
+      "related_issues": ["CAG-01"]
+    },
+    {
+      "id": "D02",
+      "summary": "GraphRAG as hybrid candidate to evaluate",
+      "rationale": "Email corpus is inherently relational (people, companies, topics, decisions). GraphRAG captures relationship signal that vector search misses. Recommended: GraphRAG POC on 6-month email slice before scaling.",
+      "session": 1,
+      "date": "2026-04-12",
+      "status": "superseded",
+      "superseded_by": "D04",
+      "superseded_notes": "Kuzu (recommended DB) acquired by Apple (D09). Architecture shifted to unified store (D04).",
+      "related_issues": ["CAG-01", "CAG-02"]
+    },
+    {
+      "id": "D03",
+      "summary": "Deep context methodology formalized as reusable skill",
+      "rationale": "Session 33 from Perkin project served as reference spec. Skill created, packaged, delivered. Applicable across claude.ai, Claude Code, and Cowork.",
+      "session": 1,
+      "date": "2026-04-12",
+      "status": "active",
+      "related_issues": ["CAG-04"]
+    },
+    {
+      "id": "D04",
+      "summary": "Unified store architecture: one store, many lenses",
+      "rationale": "Multi-backend + router model has seven identified weaknesses: router is the hardest/most failure-prone component, most queries span backends, operational surface area grows with each backend, data consistency drifts between stores, ingestion quality is the upstream dependency that matters more than retrieval pattern, CAG staleness is unsolvable with separate stores, and upfront classification is brittle vs iterative agent reasoning. Unified architecture solves all seven. Supersedes D01 and D02.",
+      "session": 2,
+      "date": "2026-04-12",
+      "status": "active",
+      "related_issues": ["CAG-01"]
+    },
+    {
+      "id": "D05",
+      "summary": "PostgreSQL+AGE as sole database",
+      "rationale": "AGE provides Cypher graph queries as a Postgres extension. Combined with tsvector (FTS) and jsonb (document), Postgres becomes the multi-model canonical store. Eliminates separate graph database. ArcadeDB evaluated and rejected. Corpus scale (tens of thousands of nodes) doesn't require purpose-built graph engine.",
+      "session": 2,
+      "date": "2026-04-12",
+      "status": "active",
+      "related_issues": ["MER-01"]
+    },
+    {
+      "id": "D06",
+      "summary": "Zuplo as unified API/MCP layer",
+      "rationale": "MCP Server Handler exposes retrieval lenses as agent-discoverable tools. AI gateway features (semantic caching, token-based rate limiting, model routing) solve cost control. Observability included. Edge deployment with GitOps.",
+      "session": 2,
+      "date": "2026-04-12",
+      "status": "active",
+      "related_issues": ["MER-04"]
+    },
+    {
+      "id": "D07",
+      "summary": "Railway for infrastructure, Vercel only for frontend",
+      "rationale": "Vercel can't run custom Docker containers or host persistent databases. Railway is the right platform for Postgres+AGE and API services. Vercel's role is limited to frontend/dashboard when that phase arrives.",
+      "session": 2,
+      "date": "2026-04-12",
+      "status": "active",
+      "related_issues": []
+    },
+    {
+      "id": "D08",
+      "summary": "Project codename: Meridian",
+      "rationale": "Reference line / single source of truth metaphor. Optics metaphor (lens focus). Clean repo name, clean namespace, no ecosystem collisions.",
+      "session": 2,
+      "date": "2026-04-12",
+      "status": "active",
+      "related_issues": []
+    },
+    {
+      "id": "D09",
+      "summary": "Kuzu eliminated from consideration",
+      "rationale": "Acquired by Apple October 2025, GitHub archived. Community forks (LadybugDB, Vela Partners) lack corporate backing and carry abandonment risk. Session 01 recommendation to use Kuzu for POC is invalidated.",
+      "session": 2,
+      "date": "2026-04-12",
+      "status": "active",
+      "related_issues": []
+    },
+    {
+      "id": "D10",
+      "summary": "Schema and extraction prompt are model-agnostic",
+      "rationale": "JSON contract defines output shape. Any model producing conforming JSON works. No architectural coupling to a specific LLM provider.",
+      "session": 3,
+      "date": "2026-04-12",
+      "status": "active",
+      "related_issues": ["MER-02"]
+    },
+    {
+      "id": "D11",
+      "summary": "Multi-model routing via Zuplo gateway",
+      "rationale": "Model selection is a gateway policy, not application logic. Enables Haiku for bulk, Opus for complex, Gemini for long-context — all without code changes.",
+      "session": 3,
+      "date": "2026-04-12",
+      "status": "superseded",
+      "superseded_by": "D22",
+      "superseded_notes": "D22 moves model selection to user-facing preference in the Meridian interface. Zuplo executes routing but does not decide it.",
+      "related_issues": []
+    },
+    {
+      "id": "D12",
+      "summary": "Validate extraction quality against Haiku first",
+      "rationale": "Haiku is the cost floor. If it handles extraction reliably, everything above it can too. Failures identify routing rules.",
+      "session": 3,
+      "date": "2026-04-12",
+      "status": "active",
+      "related_issues": ["MER-06"]
+    },
+    {
+      "id": "D13",
+      "summary": "No pre-filter on email ingestion",
+      "rationale": "Automated notifications carry employment, financial, and temporal signal. Noise is a data engineering bias that conflicts with total context capture. Every email gets extracted.",
+      "session": 3,
+      "date": "2026-04-12",
+      "status": "active",
+      "related_issues": ["MER-03"]
+    },
+    {
+      "id": "D14",
+      "summary": "Source classification as metadata, not a filter",
+      "rationale": "Emails tagged with source_type at extraction time (personal, notification, advertisement, transactional, newsletter, system). Classification is queryable metadata for lens filtering, not a gate.",
+      "session": 3,
+      "date": "2026-04-12",
+      "status": "active",
+      "related_issues": ["MER-03"]
+    },
+    {
+      "id": "D15",
+      "summary": "POC scope: 2024-2025 email subset",
+      "rationale": "143,996 files (~72K emails), 26 folders, 8.74 GB. Large enough to validate entity resolution, small enough to iterate. Estimated ~$55-80 at Haiku rates.",
+      "session": 3,
+      "date": "2026-04-12",
+      "status": "active",
+      "related_issues": ["MER-05"]
+    },
+    {
+      "id": "D16",
+      "summary": "Organization.org_type expanded with school and school_district",
+      "rationale": "Humble ISD is governmental, not a Company. WLMS is a school. Existing org_type values don't cover educational institutions. School districts are the primary Private-domain organizational entity for family context.",
+      "session": 4,
+      "date": "2026-04-13",
+      "status": "active",
+      "related_issues": ["MER-08"]
+    },
+    {
+      "id": "D17",
+      "summary": "Extraction prompt: abbreviations kept verbatim",
+      "rationale": "WLMS should not be expanded by the extraction model. Cross-email entity resolution handles abbreviation-to-full-name mapping. Guessing expansions introduces error.",
+      "session": 4,
+      "date": "2026-04-13",
+      "status": "active",
+      "related_issues": ["MER-08"]
+    },
+    {
+      "id": "D18",
+      "summary": "Name parsing heuristic for email-only contacts",
+      "rationale": "When no display name and email follows firstname.lastname@domain.com, parse as Firstname Lastname (title-cased). Flag needs_review: true. Validated by johnson.marteba@gmail.com -> Marteba Johnson.",
+      "session": 4,
+      "date": "2026-04-13",
+      "status": "active",
+      "related_issues": ["MER-08"]
+    },
+    {
+      "id": "D19",
+      "summary": "Calendar invites forwarded by user = personal source_type",
+      "rationale": "User-forwarded calendar invite is personal — interpersonal content even if delivery mechanism is automated. Notification reserved for system-generated alerts with no human-authored content.",
+      "session": 4,
+      "date": "2026-04-13",
+      "status": "active",
+      "related_issues": ["MER-08"]
+    },
+    {
+      "id": "D20",
+      "summary": "Triage interface is conversational, not clinical",
+      "rationale": "Rejected approve/reject button queues. Triage must be a natural language conversation where Claude presents findings and asks questions, and corrections cascade across the graph.",
+      "session": 4,
+      "date": "2026-04-13",
+      "status": "active",
+      "related_issues": ["MER-10"]
+    },
+    {
+      "id": "D21",
+      "summary": "Three-function interface architecture",
+      "rationale": "Function 1 (Conversational Triage), Function 2 (Insight Explorer), Function 3 (Execution Layer). Functions inform each other. F2 and F3 inform how F1 presents data. F3 is always available from F1 and F2. Recommendations engine spans all three.",
+      "session": 4,
+      "date": "2026-04-13",
+      "status": "active",
+      "related_issues": ["MER-10"]
+    },
+    {
+      "id": "D22",
+      "summary": "Model selection is user-facing preference (supersedes D11)",
+      "rationale": "Model selection must be in the Meridian interface settings, changeable anytime, like Claude.ai's model picker. Zuplo executes routing but does not decide it. Per-task overrides supported. Cost estimation surfaced in UI. Provider-agnostic.",
+      "session": 4,
+      "date": "2026-04-13",
+      "status": "active",
+      "related_issues": ["MER-04"]
+    },
+    {
+      "id": "D23",
+      "summary": "Batch-first entity triage",
+      "rationale": "Process 500 emails, stage results, present entities grouped by type. Entity-centric triage, not email-centric. More efficient: merge 47 instances of the same person at once instead of email-by-email.",
+      "session": 4,
+      "date": "2026-04-13",
+      "status": "active",
+      "related_issues": ["MER-11"]
+    },
+    {
+      "id": "D24",
+      "summary": "Extraction as proposal, human-in-the-loop is architectural",
+      "rationale": "Extraction model cannot resolve ambiguity requiring life context. Extractions land in staging table, not live graph, until human review. Not a quality gate — a fundamental architectural requirement. Any system skipping this step is building on unreviewed assumptions.",
+      "session": 4,
+      "date": "2026-04-13",
+      "status": "active",
+      "related_issues": ["MER-11", "MER-03"]
+    },
+    {
+      "id": "D25",
+      "summary": "BSL 1.1 license with full IP enforcement",
+      "rationale": "Public repo requires explicit IP protection. Permits viewing and non-production use. Reserves commercial rights. Auto-converts to Apache 2.0 after 4-year change date. Battle-tested (HashiCorp, MariaDB, Sentry, CockroachDB). Elastic License 2.0 rejected (too permissive). AGPL v3 rejected (deters collaboration). Four enforcement artifacts: LICENSE, COPYRIGHT, per-file headers, GPG-signed commits.",
+      "session": 5,
+      "date": "2026-04-14",
+      "status": "active",
+      "related_issues": ["MER-14"]
+    },
+    {
+      "id": "D26",
+      "summary": "Hybrid header format: GITOPS.md text, prompt extension list",
+      "rationale": "Docs govern format (CLAUDE.md rule). GITOPS.md condensed single-line header is canonical. GITOPS.md omitted .sh, .css, .mjs — prompt had broader coverage. Hybrid takes the right thing from each source.",
+      "session": 6,
+      "date": "2026-04-14",
+      "status": "active",
+      "related_issues": ["MER-14"]
+    },
+    {
+      "id": "D27",
+      "summary": "Git identity: Charles K. Johnson / mobile@charleskjohnson.com",
+      "rationale": "Explicit name and verified email. Used for git config, GPG key generation, GitHub verification. Aligns IP chain: COPYRIGHT -> LICENSE -> commit authorship -> GPG signature all trace to same identity.",
+      "session": 6,
+      "date": "2026-04-14",
+      "status": "active",
+      "related_issues": ["MER-14"]
+    },
+    {
+      "id": "D28",
+      "summary": ".gitattributes with text=auto eol=lf; .claude/settings.local.json tracked",
+      "rationale": ".claude/settings.local.json is project-specific config inherited by Claude Code sessions — not user-specific. .gitattributes ensures consistent line endings across WSL and Windows environments.",
+      "session": 6,
+      "date": "2026-04-14",
+      "status": "active",
+      "related_issues": ["MER-14"]
+    },
+    {
+      "id": "D29",
+      "summary": "SSH from WSL as canonical push method",
+      "rationale": "Signing key lives in WSL. SSH push from WSL keeps sign -> commit -> push chain in one environment. Eliminates WSL/Git Bash interop requirement. Future-proofs for automated agent commits. Not yet configured — HTTPS from Git Bash is current workaround.",
+      "session": 6,
+      "date": "2026-04-14",
+      "status": "active",
+      "related_issues": ["MER-18"]
+    }
+  ],
+
+  "decisions_pending_session_07": [
+    {
+      "id": "D30",
+      "summary": "npm as package manager",
+      "rationale": "Ships with Node.js v22. No additional install or configuration. Solo project with single service doesn't need yarn/pnpm monorepo features.",
+      "session": 7,
+      "date": "2026-04-14"
+    },
+    {
+      "id": "D31",
+      "summary": "Fastify as Node.js API framework",
+      "rationale": "TypeScript-first (aligns with strict TS standard). Built-in JSON Schema validation for webhook payloads and API contracts. Plugin system maps to modular lens architecture. Lightweight — heavy compute runs in Agents API, not on Railway.",
+      "session": 7,
+      "date": "2026-04-14"
+    },
+    {
+      "id": "D32",
+      "summary": "SSE for server-to-client streaming, not WebSockets",
+      "rationale": "All streaming cases (triage conversation, briefing assembly, agent monitor) are server-to-client. SSE flows through Zuplo without special handling — preserves auth, rate limiting, observability. WebSockets would bypass Zuplo, losing harness layer constraints. Fastify supports SSE natively. Not needed until frontend phase.",
+      "session": 7,
+      "date": "2026-04-14"
+    }
+  ],
+
+  "issues": [
+    {
+      "id": "MER-01",
+      "title": "AGE deployment on Railway",
+      "description": "AGE extension deployment via custom Docker image from apache/age not yet validated. Dockerfile not written. Must validate: AGE extension loads, Cypher queries execute, shared_preload_libraries configured, connection pool handles per-connection LOAD 'age' requirement.",
+      "status": "open",
+      "severity": "normal",
+      "phase": 2,
+      "session_opened": 2,
+      "session_resolved": null,
+      "related_decisions": ["D05"],
+      "notes": "Deferred to Phase 2. Phase 0 uses plain PostgreSQL without AGE extension."
+    },
+    {
+      "id": "MER-02",
+      "title": "Graph schema design",
+      "description": "Node types, edge types, domain vectors, property conventions for the canonical knowledge graph.",
+      "status": "resolved",
+      "severity": "normal",
+      "phase": null,
+      "session_opened": 2,
+      "session_resolved": 3,
+      "related_decisions": ["D10", "D16"],
+      "notes": "9 node types, 13 edge types, 4 domain vectors. Schema document: docs/SCHEMA.md"
+    },
+    {
+      "id": "MER-03",
+      "title": "Ingestion pipeline design",
+      "description": "Full pipeline from email file to graph write. Extraction prompt done, staging table designed, triage protocol conceptual. Python ingestion adapter not built.",
+      "status": "open",
+      "severity": "normal",
+      "phase": 3,
+      "session_opened": 2,
+      "session_resolved": null,
+      "related_decisions": ["D13", "D14", "D24"],
+      "notes": "Pipeline changed from extract->validate->write to extract->validate->stage->human review->write per D24."
+    },
+    {
+      "id": "MER-04",
+      "title": "Zuplo project for Meridian not created",
+      "description": "Zuplo project creation, API route definitions for lens endpoints, MCP Server Handler configuration, caching and rate limiting policies. Needs model routing parameter support per D22.",
+      "status": "open",
+      "severity": "normal",
+      "phase": 0,
+      "session_opened": 2,
+      "session_resolved": null,
+      "related_decisions": ["D06", "D22"],
+      "notes": "Blocked by: no API endpoints to expose until API service is scaffolded."
+    },
+    {
+      "id": "MER-05",
+      "title": "Email corpus access method",
+      "description": "How the email archive is made available for ingestion pipeline.",
+      "status": "resolved",
+      "severity": "normal",
+      "phase": null,
+      "session_opened": 2,
+      "session_resolved": 3,
+      "related_decisions": ["D15"],
+      "notes": ".eml/.html pairs from M365 Graph API export. Direct file system read from D:\\email archive\\m365\\. POC subset: 2024-2025 (143,996 files, 8.74 GB)."
+    },
+    {
+      "id": "MER-06",
+      "title": "Extraction prompt validation against real corpus",
+      "description": "Test extraction prompt against actual emails from the 2024-2025 subset across multiple domains and source types.",
+      "status": "resolved",
+      "severity": "normal",
+      "phase": null,
+      "session_opened": 3,
+      "session_resolved": 4,
+      "related_decisions": ["D12"],
+      "notes": "9 emails tested across 5 source types, 3 domains. Quality strong for entity/edge identification. Failures in domain classification and entity resolution — addressable via prompt updates and post-processing."
+    },
+    {
+      "id": "MER-07",
+      "title": "Entity resolution quality",
+      "description": "Same person appearing across hundreds of emails with name variations and multiple email addresses. The pipeline's hardest problem.",
+      "status": "open",
+      "severity": "high",
+      "phase": 3,
+      "session_opened": 2,
+      "session_resolved": null,
+      "related_decisions": [],
+      "notes": "Concrete evidence from Session 04: Marcie Rodriguez has two email addresses at same domain (marcie.rodriguez@humbleisd.net vs marodrig@humbleisd.net). Reframed as part of MER-09."
+    },
+    {
+      "id": "MER-08",
+      "title": "Extraction prompt v1.2 changes not applied",
+      "description": "Five changes documented in Session 04 not yet applied to docs/EXTRACTION.md: org_type expansion (school, school_district), abbreviation verbatim rule, name-from-email parsing heuristic, calendar invite source_type clarification, travel dual-tag default.",
+      "status": "open",
+      "severity": "normal",
+      "phase": null,
+      "session_opened": 4,
+      "session_resolved": null,
+      "related_decisions": ["D16", "D17", "D18", "D19"],
+      "notes": "docs/EXTRACTION.md is still v1. Changes documented in Session 04 deep context."
+    },
+    {
+      "id": "MER-09",
+      "title": "Entity resolution secondary matching strategy",
+      "description": "Beyond email-as-primary-key. Need: (a) email match, (b) display name + domain match, (c) fuzzy name match within same organization. Marcie Rodriguez case is the concrete test case.",
+      "status": "open",
+      "severity": "high",
+      "phase": 3,
+      "session_opened": 4,
+      "session_resolved": null,
+      "related_decisions": [],
+      "notes": "Same person, two addresses at same domain. Email-key merge will fail without secondary matching."
+    },
+    {
+      "id": "MER-10",
+      "title": "Meridian Interface Architecture specification",
+      "description": "Formal spec for three-function model (Conversational Triage, Insight Explorer, Execution Layer), recommendations engine, model selection settings, staging-to-graph-write flow.",
+      "status": "resolved",
+      "severity": "normal",
+      "phase": null,
+      "session_opened": 4,
+      "session_resolved": 5,
+      "related_decisions": ["D20", "D21", "D22"],
+      "notes": "Formalized in SAD Section 10."
+    },
+    {
+      "id": "MER-11",
+      "title": "Staging table schema",
+      "description": "PostgreSQL table for holding extractions before human review. Schema includes: extraction_id, email_message_id, extracted_json, status enum, reviewer_notes, reviewed_at, batch_id, corrections_applied jsonb, model_used.",
+      "status": "resolved",
+      "severity": "normal",
+      "phase": null,
+      "session_opened": 4,
+      "session_resolved": 5,
+      "related_decisions": ["D23", "D24"],
+      "notes": "Fully designed in SAD Section 7.1.4 and docs/DATABASE.md. DDL ready."
+    },
+    {
+      "id": "MER-12",
+      "title": "Recommendations engine design",
+      "description": "Haiku periodic analysis against graph -> candidate generation -> queue for presentation. Trigger conditions, frequency, candidate schema, dismissal tracking all undefined.",
+      "status": "open",
+      "severity": "normal",
+      "phase": 4,
+      "session_opened": 4,
+      "session_resolved": null,
+      "related_decisions": ["D21"],
+      "notes": "Deferred to Phase 4."
+    },
+    {
+      "id": "MER-13",
+      "title": "SAD markdown version for repo",
+      "description": "SAD was produced as .docx for formal distribution. Claude Code can't read .docx. Need markdown equivalent at docs/SAD_v1.0.md.",
+      "status": "open",
+      "severity": "normal",
+      "phase": null,
+      "session_opened": 5,
+      "session_resolved": null,
+      "related_decisions": [],
+      "notes": "Deferred."
+    },
+    {
+      "id": "MER-14",
+      "title": "Claude Code Git setup prompt",
+      "description": "Phase 0 Git and GitHub preparation: GPG signing, LICENSE, COPYRIGHT, README, .gitignore, .gitattributes, header templates, pre-commit hook, first signed commit.",
+      "status": "resolved",
+      "severity": "normal",
+      "phase": 0,
+      "session_opened": 5,
+      "session_resolved": 6,
+      "related_decisions": ["D25", "D26", "D27", "D28", "D29"],
+      "notes": "Executed in Session 06. Two signed commits: cadddfc (Phase 0 foundation) and 2086bc9 (routing actions). Both verified on GitHub."
+    },
+    {
+      "id": "MER-15",
+      "title": "Agents API availability unconfirmed",
+      "description": "Agents API primitives (agents, environments, sessions, events) shared as structured table but source not verified against Anthropic published documentation. Architecture works with Claude Code subagents and Railway scheduled jobs as interim if not GA.",
+      "status": "open",
+      "severity": "normal",
+      "phase": null,
+      "session_opened": 5,
+      "session_resolved": null,
+      "related_decisions": [],
+      "notes": "Check Anthropic docs for GA status."
+    },
+    {
+      "id": "MER-16",
+      "title": "Intelligence source list not populated",
+      "description": "Source manager SPA built but no actual sources entered. YouTube channels, RSS feeds, subreddits, and other monitored sources need to be entered. Prerequisite for agent mission definitions.",
+      "status": "open",
+      "severity": "normal",
+      "phase": null,
+      "session_opened": 5,
+      "session_resolved": null,
+      "related_decisions": [],
+      "notes": "SPA uses browser persistent storage. Will be replaced by API-backed version."
+    },
+    {
+      "id": "MER-17",
+      "title": "Node.js API service not scaffolded",
+      "description": "Fastify + TypeScript strict. Project structure per CODING_STANDARDS.md. Connection pool with AGE init pattern. Phase 0 endpoints for project state queries.",
+      "status": "open",
+      "severity": "normal",
+      "phase": 0,
+      "session_opened": 5,
+      "session_resolved": null,
+      "related_decisions": ["D31"],
+      "notes": "Framework (Fastify) and package manager (npm) decided in Session 07."
+    },
+    {
+      "id": "MER-18",
+      "title": "SSH key not configured on WSL",
+      "description": "D29 documents SSH from WSL as canonical push method. ssh-keygen not yet run. Public key not added to GitHub. Remote not switched from HTTPS to SSH.",
+      "status": "deferred",
+      "severity": "low",
+      "phase": null,
+      "session_opened": 6,
+      "session_resolved": null,
+      "related_decisions": ["D29"],
+      "notes": "Deferred in Session 07. Current HTTPS push from Git Bash is functional. Not blocking development."
+    },
+    {
+      "id": "MER-19",
+      "title": "gh CLI not available in WSL",
+      "description": "WSL has gitsome (a different Python tool) instead of real GitHub CLI. GitHub API operations require Git Bash. Consider installing real gh in WSL via apt.",
+      "status": "open",
+      "severity": "low",
+      "phase": null,
+      "session_opened": 6,
+      "session_resolved": null,
+      "related_decisions": [],
+      "notes": "Low priority. Git Bash workaround exists."
+    }
+  ],
+
+  "legacy_issues": [
+    {
+      "id": "CAG-01",
+      "title": "Architecture decision between pure CAG and GraphRAG",
+      "status": "resolved",
+      "session_opened": 1,
+      "session_resolved": 2,
+      "notes": "Resolved by D04. Neither in isolation. Unified 'one store, many lenses' architecture adopted."
+    },
+    {
+      "id": "CAG-02",
+      "title": "Entity extraction quality against real email corpus",
+      "status": "resolved",
+      "session_opened": 1,
+      "session_resolved": 4,
+      "notes": "Resolved by MER-06. Extraction quality validated in Session 04."
+    },
+    {
+      "id": "CAG-03",
+      "title": "Compilation pipeline design",
+      "status": "resolved",
+      "session_opened": 1,
+      "session_resolved": 2,
+      "notes": "Reframed as compiled views lens within unified architecture."
+    },
+    {
+      "id": "CAG-04",
+      "title": "deep-context.skill installation",
+      "status": "resolved",
+      "session_opened": 1,
+      "session_resolved": 2,
+      "notes": "Skill active and triggering correctly as of Session 02."
+    }
+  ],
+
+  "sessions": [
+    {
+      "number": 1,
+      "date": "2026-04-12",
+      "theme": "Architecture evaluation — CAG vs RAG vs GraphRAG, deep-context skill creation",
+      "decisions_made": ["D01", "D02", "D03"],
+      "issues_opened": ["CAG-01", "CAG-02", "CAG-03", "CAG-04"],
+      "issues_resolved": [],
+      "key_deliverables": "Architecture decision framework, deep-context skill",
+      "summary": "Project inception. Evaluated CAG, RAG, and GraphRAG architectures for personal AI OS built on ~300K email corpus. CAG selected as primary candidate. GraphRAG as hybrid alternative. Deep context methodology formalized as reusable skill from Perkin Session 33 reference."
+    },
+    {
+      "number": 2,
+      "date": "2026-04-12",
+      "theme": "Architecture refinement — unified store, Zuplo integration, graph DB selection, project naming, repo creation",
+      "decisions_made": ["D04", "D05", "D06", "D07", "D08", "D09"],
+      "issues_opened": ["MER-01", "MER-02", "MER-03", "MER-04", "MER-05"],
+      "issues_resolved": ["CAG-01", "CAG-04"],
+      "key_deliverables": "Unified knowledge architecture diagram, GitHub repository (ckj9779/Meridian)",
+      "summary": "Reframed from pick-one to unified architecture. Multi-backend + router model critiqued (7 weaknesses). Replaced with 'one store, many lenses' — single canonical knowledge graph with three retrieval lenses. PostgreSQL+AGE selected as sole database. Kuzu eliminated (Apple acquisition). Zuplo as API/MCP layer. Project named Meridian. Repo created."
+    },
+    {
+      "number": 3,
+      "date": "2026-04-12",
+      "theme": "Graph schema design, four-domain model, entity extraction prompt, email corpus format discovery",
+      "decisions_made": ["D10", "D11", "D12", "D13", "D14", "D15"],
+      "issues_opened": ["MER-06", "MER-07"],
+      "issues_resolved": ["MER-02", "MER-05"],
+      "key_deliverables": "Graph schema v1 (docs/SCHEMA.md), extraction prompt v1.1 (docs/EXTRACTION.md), schema overview diagram",
+      "summary": "Designed graph schema: 9 node types, 13 edge types, 4 domain vectors (Professional, Private, Spiritual, Romantic). Four-domain model established — Meridian is a personal knowledge graph, not just professional. Email corpus confirmed as .eml/.html pairs from M365 Graph API export. No pre-filter decision. Model-agnostic schema via JSON contract."
+    },
+    {
+      "number": 4,
+      "date": "2026-04-13",
+      "theme": "Extraction prompt validation against real email data, interface architecture — three-function conversational model",
+      "decisions_made": ["D16", "D17", "D18", "D19", "D20", "D21", "D22", "D23", "D24"],
+      "issues_opened": ["MER-08", "MER-09", "MER-10", "MER-11", "MER-12"],
+      "issues_resolved": ["MER-06"],
+      "key_deliverables": "8 extraction validations, extraction prompt v1.2 change spec, interface architecture concept",
+      "summary": "Tested extraction against 9 real emails spanning 5 source types and 3 domains. Established family graph (Joshua, Chloe, Marteba). Pivotal observation: extraction is proposal, not fact — human-in-the-loop is architectural (D24). Three-function interface designed: Conversational Triage, Insight Explorer, Execution Layer. Model selection moved to user preference (D22)."
+    },
+    {
+      "number": 5,
+      "date": "2026-04-14",
+      "theme": "Agentic intelligence architecture, System Architecture Document, licensing/IP framework, developer documentation ecosystem",
+      "decisions_made": ["D25"],
+      "issues_opened": ["MER-13", "MER-14", "MER-15", "MER-16", "MER-17"],
+      "issues_resolved": ["MER-10", "MER-11"],
+      "key_deliverables": "Intelligence source manager SPA, interactive system architecture diagram, SAD v1.0 (.docx), CLAUDE.md, 4 developer reference docs, 2 renamed schema/extraction docs, Claude Code Git setup prompt",
+      "summary": "Mapped full email ecosystem (M365, Gmail, iCloud, Microsoft Live). Intelligence gathering identified as primary value proposition (5-10 hrs/day manual effort). Six-layer architecture formalized with harness layer. Agents API as execution runtime. BSL 1.1 license selected. SAD produced (15 sections, ~35 pages). CLAUDE.md and modular docs ecosystem created. Phase 0-5 roadmap established. Meridian builds itself from Phase 0."
+    },
+    {
+      "number": 6,
+      "date": "2026-04-14",
+      "theme": "Insight protocol design, CLAUDE.md rewrite, Git/GitHub Phase 0 setup via Claude Code, routing action application",
+      "decisions_made": ["D26", "D27", "D28", "D29"],
+      "issues_opened": ["MER-18", "MER-19"],
+      "issues_resolved": ["MER-14"],
+      "key_deliverables": "CLAUDE.md full rewrite with insight protocol, 2 Claude Code prompts, 2 signed commits (cadddfc, 2086bc9), 2 insight ledgers, 14 insights captured, .gitattributes, LICENSE, COPYRIGHT, README.md, .gitignore, 6 header templates, pre-commit hook",
+      "summary": "Designed insight protocol — structured capture of Claude Code observations routed to specific docs. Eight insight types with routing targets. CLAUDE.md rewritten from 143 to ~280 lines. Two Claude Code prompts executed: git-setup (10 insights) and routing-actions (4 insights). First two signed commits verified on GitHub. GPG key rsa4096/799AD4A789D27DA8 generated. WSL/Git Bash dual environment discovered and documented."
+    }
+  ],
+
+  "system_context": [
+    { "key": "project_name", "value": "Meridian" },
+    { "key": "current_phase", "value": "0" },
+    { "key": "phase_description", "value": "Can remember — PostgreSQL + API + Zuplo MCP" },
+    { "key": "architecture", "value": "One store, many lenses — unified canonical knowledge graph with three retrieval lenses" },
+    { "key": "canonical_store", "value": "PostgreSQL + Apache AGE (AGE deferred to Phase 2)" },
+    { "key": "api_framework", "value": "Fastify + TypeScript (Node.js)" },
+    { "key": "package_manager", "value": "npm" },
+    { "key": "api_gateway", "value": "Zuplo — auth, rate limiting, semantic caching, MCP exposure" },
+    { "key": "infrastructure_host", "value": "Railway" },
+    { "key": "frontend_host", "value": "Vercel (future)" },
+    { "key": "frontend_framework", "value": "Next.js (future)" },
+    { "key": "execution_runtime", "value": "Anthropic Agents API (unconfirmed — MER-15)" },
+    { "key": "license", "value": "BSL 1.1" },
+    { "key": "owner", "value": "Charles K. Johnson" },
+    { "key": "owner_email", "value": "mobile@charleskjohnson.com" },
+    { "key": "github_repo", "value": "ckj9779/Meridian" },
+    { "key": "github_visibility", "value": "public" },
+    { "key": "local_repo_path", "value": "/mnt/d/Meridian/" },
+    { "key": "machine_name", "value": "StarshipOne" },
+    { "key": "os", "value": "Windows + WSL (Ubuntu)" },
+    { "key": "gpg_key", "value": "rsa4096/799AD4A789D27DA8, expires 2028-04-13" },
+    { "key": "node_version", "value": "v22.17.0" },
+    { "key": "python_version", "value": "3.13.5" },
+    { "key": "git_signing", "value": "commit.gpgsign=true, tag.gpgsign=true" },
+    { "key": "push_method", "value": "HTTPS from Git Bash (workaround). SSH from WSL planned (D29, MER-18 deferred)." },
+    { "key": "streaming_protocol", "value": "SSE for server-to-client. No WebSockets." },
+    { "key": "domain_model", "value": "Four domains: Professional, Private, Spiritual, Romantic" },
+    { "key": "value_proposition", "value": "Intelligence multiplier — graph-scored briefings from automated source scanning. Compresses 5-10 hrs/day manual intelligence gathering to 30-60 min reviewed briefings." },
+    { "key": "commits_on_main", "value": "3 — e495e6b (initial), cadddfc (Phase 0 foundation), 2086bc9 (routing actions)" },
+    { "key": "email_corpus_m365", "value": "415,627 files, 126 folders, 26.3 GB (~200K emails). POC subset 2024-2025: 143,996 files, 8.74 GB (~72K emails)." },
+    { "key": "email_corpus_gmail", "value": "90%+ personal. Four-domain data. Not yet exported." },
+    { "key": "email_corpus_icloud", "value": "Neglected account. Unknown signal quality." },
+    { "key": "email_corpus_mslive", "value": "Neglected account. Unknown signal quality." }
+  ],
+
+  "model_preferences": [
+    {
+      "task": "extraction",
+      "model": "claude-haiku-4-5-20251001",
+      "provider": "anthropic",
+      "notes": "Cost-effective for high-volume email extraction. Validated in Session 04."
+    },
+    {
+      "task": "conversation",
+      "model": "claude-sonnet-4-6",
+      "provider": "anthropic",
+      "notes": "Default for triage conversations, insight exploration, general reasoning."
+    },
+    {
+      "task": "complex_reasoning",
+      "model": "claude-opus-4-6",
+      "provider": "anthropic",
+      "notes": "Complex queries, multi-hop graph reasoning, briefing synthesis."
+    },
+    {
+      "task": "recommendations",
+      "model": "claude-haiku-4-5-20251001",
+      "provider": "anthropic",
+      "notes": "Periodic graph analysis for recommendation generation. Cost-sensitive."
+    }
+  ],
+
+  "tech_watch": [
+    {
+      "component": "apache_age",
+      "technology": "PostgreSQL graph extension",
+      "version": "Supports PG 11-18",
+      "status": "selected",
+      "phase": 2,
+      "notes": "Cypher query support. Deferred to Phase 2. Custom Docker image from apache/age planned."
+    },
+    {
+      "component": "zuplo",
+      "technology": "API gateway / MCP server handler",
+      "version": "current",
+      "status": "selected",
+      "phase": 0,
+      "notes": "Auth, rate limiting, semantic caching, MCP exposure, observability. Edge deployment."
+    },
+    {
+      "component": "railway",
+      "technology": "Infrastructure hosting",
+      "version": "current",
+      "status": "deployed",
+      "phase": 0,
+      "notes": "PostgreSQL deployed and online. Meridian project created."
+    },
+    {
+      "component": "fastify",
+      "technology": "Node.js API framework",
+      "version": "latest",
+      "status": "selected",
+      "phase": 0,
+      "notes": "TypeScript-first. JSON Schema validation. Plugin architecture. Selected in Session 07."
+    },
+    {
+      "component": "postgresql",
+      "technology": "Database",
+      "version": "Railway default",
+      "status": "deployed",
+      "phase": 0,
+      "notes": "Phase 0 tables only. AGE extension deferred to Phase 2."
+    },
+    {
+      "component": "anthropic_agents_api",
+      "technology": "Managed agent execution runtime",
+      "version": "unconfirmed",
+      "status": "planned",
+      "phase": 1,
+      "notes": "MER-15: GA status unconfirmed. Interim: Claude Code subagents + Railway scheduled jobs."
+    },
+    {
+      "component": "nextjs",
+      "technology": "Frontend framework",
+      "version": "latest",
+      "status": "planned",
+      "phase": 4,
+      "notes": "Vercel deployment. Three-function interface."
+    },
+    {
+      "component": "vercel",
+      "technology": "Frontend hosting",
+      "version": "current",
+      "status": "planned",
+      "phase": 4,
+      "notes": "Frontend only. Not for backend services (D07)."
+    }
+  ]
+}

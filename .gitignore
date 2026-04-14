@@ -1,7 +1,7 @@
 # Dependencies
 node_modules/
 .npm/
-package-lock.json
+# package-lock.json is committed (docs/CODING_STANDARDS.md:335)
 
 # Python
 __pycache__/
