@@ -6,7 +6,9 @@
 
 ## Overview
 
-PostgreSQL 16 with Apache AGE extension is the sole database (D05). Hosted on Railway via custom Docker image extending `apache/age`. All 15 relational tables and the AGE graph topology coexist in a single instance. One database, one connection string, one backup strategy.
+PostgreSQL 18 (Railway deployment) with Apache AGE extension is the sole database (D05). Hosted on Railway via custom Docker image extending `apache/age`. All relational tables and the AGE graph topology coexist in a single instance. One database, one connection string, one backup strategy.
+
+**Phase 2 blocker:** Apache AGE compatibility with PostgreSQL 18 is unverified. The `apache/age` Docker image must be tested against PG 18 before AGE deployment. If incompatible, Railway PostgreSQL may need to be pinned to PG 16.
 
 ## Connection Requirements
 
@@ -38,6 +40,8 @@ pool.on('connect', async (client) => {
   await client.query('SET search_path = ag_catalog, "$user", public');
 });
 ```
+
+**Railway-specific:** Connections require `ssl: { rejectUnauthorized: false }`. Railway uses a certificate chain that the Node.js default CA bundle does not fully trust. This is standard Railway practice. Future hardening: pin Railway's CA certificate.
 
 ### Docker image
 Custom Dockerfile extending `apache/age` official image. Must include:
@@ -91,7 +95,7 @@ COMMIT;
 
 ---
 
-## Relational Schema — 15 Tables
+## Relational Schema — 16 Tables
 
 ### sources
 Intelligence source definitions. Each row is a mission objective for a scanning agent.
@@ -340,6 +344,7 @@ CREATE TABLE sessions (
   issues_opened      text[],
   artifacts_produced text[],
   deep_context_ref   text,                     -- reference to full deep context
+  summary            text,                     -- migration 003: 2-3 sentence blurb for MCP queries
   created_at         timestamptz NOT NULL DEFAULT now()
 );
 ```
@@ -357,6 +362,8 @@ CREATE TABLE decisions (
   rationale            text NOT NULL,
   components_affected  text[],
   layers_affected      text[],                   -- context, memory, skills, harness, orchestration, self_maintenance
+  decided_at           date,                     -- migration 003: when the decision was made
+  related_issues       text[],                   -- migration 003: issue IDs this decision touches
   created_at           timestamptz NOT NULL DEFAULT now()
 );
 
@@ -368,24 +375,49 @@ Project issue register with blocking relationships.
 
 ```sql
 CREATE TABLE issues (
-  id               varchar(20) PRIMARY KEY,    -- MER-01, CAG-02, etc.
-  session_opened   integer NOT NULL,
-  session_resolved integer,
-  status           varchar(20) NOT NULL,       -- open, resolved, superseded, deferred
-  severity         varchar(20) NOT NULL,       -- critical, high, medium, low
-  component        varchar(100),
-  summary          text NOT NULL,
-  resolution       text,
-  blocked_by       text[],                     -- issue IDs
-  blocks           text[],                     -- issue IDs
-  created_at       timestamptz NOT NULL DEFAULT now(),
-  updated_at       timestamptz NOT NULL DEFAULT now()
+  id                 varchar(20) PRIMARY KEY,    -- MER-01, CAG-02, etc.
+  session_opened     integer NOT NULL,
+  session_resolved   integer,
+  status             varchar(20) NOT NULL,       -- open, resolved, superseded, deferred
+  severity           varchar(20) NOT NULL,       -- critical, high, medium, low
+  component          varchar(100),
+  summary            text NOT NULL,              -- one-line headline
+  resolution         text,
+  blocked_by         text[],                     -- issue IDs
+  blocks             text[],                     -- issue IDs
+  description        text,                       -- migration 003: long-form context
+  phase              smallint,                   -- migration 003: project phase (0-5)
+  related_decisions  text[],                     -- migration 003: decision IDs
+  created_at         timestamptz NOT NULL DEFAULT now(),
+  updated_at         timestamptz NOT NULL DEFAULT now()
 );
 
 CREATE INDEX idx_issues_status ON issues(status);
 CREATE INDEX idx_issues_severity ON issues(severity);
 CREATE INDEX idx_issues_component ON issues(component);
 ```
+
+### stack_components
+Static technology inventory (migration 002, D34). Describes *what is in the stack* — a registry that answers "does Meridian use X?" Distinct from `tech_watch`, which logs events *about* that stack (releases, deprecations, breaking changes) and is fed by the Phase 1 monitoring agent.
+
+```sql
+CREATE TABLE stack_components (
+  id         serial       PRIMARY KEY,
+  component  varchar(100) NOT NULL UNIQUE,      -- apache_age, fastify, zuplo, ...
+  technology varchar(200) NOT NULL,             -- descriptive name
+  version    varchar(50),                       -- "18.3", "latest", "current"
+  status     varchar(50)  NOT NULL DEFAULT 'planned', -- planned, selected, deployed, deprecated
+  phase      smallint,                          -- introducing phase (0-5)
+  notes      text,
+  created_at timestamptz  NOT NULL DEFAULT now(),
+  updated_at timestamptz  NOT NULL DEFAULT now()
+);
+
+CREATE INDEX idx_stack_components_status ON stack_components(status);
+CREATE INDEX idx_stack_components_phase  ON stack_components(phase);
+```
+
+**`serial` primary key — intentional exception to the uuid-PK convention.** Small static inventory tables with single-digit row counts that are never referenced by external systems do not benefit from uuid overhead. All other Phase 0 tables follow `uuid DEFAULT gen_random_uuid()`.
 
 ### tech_watch
 Monitoring Meridian's own technology dependencies. The first intelligence source.
@@ -483,15 +515,8 @@ CREATE UNIQUE INDEX idx_preferences_default ON model_preferences(task_type) WHER
 
 ## Seed Data
 
-Phase 0 seeds the database with existing project state from Sessions 01–05. Seed scripts are separate from migrations:
+Seed data is stored as structured JSON at `.meridian/data/seed/meridian-seed-data.json` and loaded via `npx tsx src/scripts/seed.ts`. The seed script supports `--reseed` (or `RESEED=1`) for full truncate-and-reload during development.
 
-```
-seeds/
-  001_decisions.sql      -- D01–D25
-  002_issues.sql         -- MER-01 through MER-12, CAG-02
-  003_sessions.sql       -- Sessions 01–05 metadata
-  004_system_context.sql -- Initial operating context (v1)
-  005_model_preferences.sql -- Default model selections
-```
+Seed JSON field names map directly to DDL column names; where older entries retain legacy vocabulary the script's adapter functions tolerate both shapes. `system_context` (versioned document, D33) and `stack_components` (technology inventory, D34) are seeded by a separate script, `src/scripts/seed-002.ts`, because their shape is not per-row JSON.
 
-Seed data files contain INSERT statements only. They are idempotent (use `ON CONFLICT DO NOTHING` or `INSERT ... WHERE NOT EXISTS`).
+Inserts use `ON CONFLICT DO NOTHING`, making reruns idempotent outside of `--reseed` mode.

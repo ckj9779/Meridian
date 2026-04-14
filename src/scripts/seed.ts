@@ -20,14 +20,22 @@ const SEED_FILE = join(
 /**
  * Phase 0 seed runner.
  *
- * The seed JSON at `.meridian/data/seed/meridian-seed-data.json` and the
- * DATABASE.md DDLs do not share a field vocabulary. This script maps JSON
- * fields onto DB columns where the mapping is defensible, and skips tables
- * whose JSON shape is conceptually incompatible with the DDL. See ledger
- * INS-007..INS-012 for details.
+ * Reads `.meridian/data/seed/meridian-seed-data.json` and populates the
+ * per-row Phase 0 tables: `decisions`, `issues`, `sessions`,
+ * `model_preferences`. The `system_context` and `stack_components` tables are
+ * seeded separately by `src/scripts/seed-002.ts` (see D33, D34).
  *
- * Per-table transactions: failure in one table does not corrupt another.
- * Idempotent: `ON CONFLICT DO NOTHING` so reruns are safe.
+ * After migration 003 the seed JSON vocabulary matches the DDL columns
+ * directly (no adapter rewrites needed); defensive `??` fallbacks remain so
+ * the script still works against unmodified seed JSON for bootstrap purposes.
+ *
+ * ## --reseed flag
+ *
+ * Default mode: `ON CONFLICT DO NOTHING` inserts — safe reruns.
+ * Reseed mode: truncate the four data tables managed by this script, then
+ * reload. Invoked via `npx tsx src/scripts/seed.ts --reseed` or `RESEED=1`.
+ * Only the tables this script owns are truncated — `system_context` and
+ * `stack_components` are untouched.
  */
 
 interface SeedShape {
@@ -57,9 +65,9 @@ function asRow(x: unknown): Row | null {
 }
 
 /**
- * Normalize severity strings to the canonical set. JSON uses "normal" which
- * doesn't match any value in DATABASE.md's documented severity enum. Mapped
- * to "medium" as the closest semantic equivalent. See INS-008.
+ * Normalize severity strings to the canonical set. Older seed data used
+ * `"normal"` (pre-migration-003) or null (legacy CAG-* issues, see
+ * migration-003 ledger INS-001). Both map to `medium`.
  */
 function normalizeSeverity(raw: unknown): string {
   if (typeof raw !== 'string') return 'medium';
@@ -68,14 +76,33 @@ function normalizeSeverity(raw: unknown): string {
   return s;
 }
 
+/**
+ * Tables this script owns. Listed in the order they are safe to truncate
+ * (no inter-table FKs exist in Phase 0, so order is informational).
+ */
+const MANAGED_TABLES = ['decisions', 'issues', 'sessions', 'model_preferences'] as const;
+
+function isReseedRequested(): boolean {
+  if (process.env.RESEED === '1') return true;
+  return process.argv.includes('--reseed');
+}
+
+async function truncateManaged(): Promise<void> {
+  // TRUNCATE ... RESTART IDENTITY CASCADE — safe because no FKs target these
+  // tables in Phase 0, but CASCADE is cheap insurance against future
+  // additions. RESTART IDENTITY is a no-op for decisions/issues (varchar
+  // PKs) but matters if any future table on this list uses serial.
+  const list = MANAGED_TABLES.join(', ');
+  // eslint-disable-next-line no-console
+  console.log(`Reseed: TRUNCATE ${list} RESTART IDENTITY CASCADE`);
+  await pool.query(`TRUNCATE TABLE ${list} RESTART IDENTITY CASCADE`);
+}
+
 // ---- decisions ------------------------------------------------------------
-// JSON: {id, session, status, superseded_by, summary, rationale, date, related_issues}
-// DB:   {id, session_number, status, superseded_by, summary, rationale,
-//        components_affected, layers_affected}
-//
-// `decisions_pending_session_07` entries lack `status`; they represent
-// decisions made this session not yet formally reviewed — default to
-// `pending_validation` per DATABASE.md's documented enum. See INS-007.
+// JSON (after migration 003): {id, session_number, status, superseded_by,
+//   summary, rationale, date, related_issues}
+// DB: {id, session_number, status, superseded_by, summary, rationale,
+//   components_affected, layers_affected, decided_at, related_issues}
 async function seedDecisions(rows: unknown[]): Promise<number> {
   let inserted = 0;
   await pool.query('BEGIN');
@@ -84,12 +111,13 @@ async function seedDecisions(rows: unknown[]): Promise<number> {
       const r = asRow(raw);
       if (!r) continue;
       const status = typeof r.status === 'string' ? r.status : 'pending_validation';
+      const decidedAt = r.decided_at ?? r.date ?? null;
       const result = await pool.query(
         `INSERT INTO decisions (
            id, session_number, status, superseded_by, summary, rationale,
-           components_affected, layers_affected
+           components_affected, layers_affected, decided_at, related_issues
          )
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
          ON CONFLICT (id) DO NOTHING`,
         [
           r.id,
@@ -100,6 +128,8 @@ async function seedDecisions(rows: unknown[]): Promise<number> {
           r.rationale,
           r.components_affected ?? null,
           r.layers_affected ?? null,
+          decidedAt,
+          r.related_issues ?? null,
         ],
       );
       inserted += result.rowCount ?? 0;
@@ -113,13 +143,9 @@ async function seedDecisions(rows: unknown[]): Promise<number> {
 }
 
 // ---- issues ---------------------------------------------------------------
-// JSON: {id, title, description, status, severity, phase, session_opened,
-//        session_resolved, related_decisions, notes}
-// DB:   {id, session_opened, session_resolved, status, severity, component,
-//        summary, resolution, blocked_by, blocks}
-//
-// Mapping: summary = title (description goes into resolution if no notes).
-// `phase` and `related_decisions` are not persisted (no DB columns). See INS-009.
+// JSON (after migration 003): {id, summary, description, status, severity,
+//   phase, session_opened, session_resolved, related_decisions, resolution}
+// DB: adds description, phase, related_decisions columns from migration 003.
 async function seedIssues(rows: unknown[]): Promise<number> {
   let inserted = 0;
   await pool.query('BEGIN');
@@ -127,17 +153,22 @@ async function seedIssues(rows: unknown[]): Promise<number> {
     for (const raw of rows) {
       const r = asRow(raw);
       if (!r) continue;
-      const title = typeof r.title === 'string' ? r.title : null;
+      // Defensive: tolerate pre-migration-003 JSON with `title`/`notes`.
+      const summary =
+        (typeof r.summary === 'string' ? r.summary : null) ??
+        (typeof r.title === 'string' ? r.title : null) ??
+        '(no summary)';
+      const resolution =
+        (typeof r.resolution === 'string' ? r.resolution : null) ??
+        (typeof r.notes === 'string' ? r.notes : null);
       const description = typeof r.description === 'string' ? r.description : null;
-      const notes = typeof r.notes === 'string' ? r.notes : null;
-      const summary = title ?? description ?? '(no title)';
-      const resolution = notes ?? description ?? null;
       const result = await pool.query(
         `INSERT INTO issues (
            id, session_opened, session_resolved, status, severity, component,
-           summary, resolution, blocked_by, blocks
+           summary, resolution, blocked_by, blocks,
+           description, phase, related_decisions
          )
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
          ON CONFLICT (id) DO NOTHING`,
         [
           r.id,
@@ -150,6 +181,9 @@ async function seedIssues(rows: unknown[]): Promise<number> {
           resolution,
           r.blocked_by ?? null,
           r.blocks ?? null,
+          description,
+          r.phase ?? null,
+          r.related_decisions ?? null,
         ],
       );
       inserted += result.rowCount ?? 0;
@@ -163,13 +197,9 @@ async function seedIssues(rows: unknown[]): Promise<number> {
 }
 
 // ---- sessions -------------------------------------------------------------
-// JSON: {number, date, theme, decisions_made, issues_opened, issues_resolved,
-//        key_deliverables, summary}
-// DB:   {session_number, date, theme, decisions_made, issues_resolved,
-//        issues_opened, artifacts_produced, deep_context_ref}
-//
-// `key_deliverables` (string) is stuffed into `artifacts_produced` (text[]) as a
-// single-element array. `summary` is not persisted. See INS-010.
+// JSON (after migration 003): {session_number, date, theme, decisions_made,
+//   issues_opened, issues_resolved, artifacts_produced, summary}
+// DB: adds `summary` column from migration 003.
 async function seedSessions(rows: unknown[]): Promise<number> {
   let inserted = 0;
   await pool.query('BEGIN');
@@ -177,14 +207,20 @@ async function seedSessions(rows: unknown[]): Promise<number> {
     for (const raw of rows) {
       const r = asRow(raw);
       if (!r) continue;
+      // Defensive fallback for pre-migration-003 shape.
+      const artifactsRaw = r.artifacts_produced ?? r.key_deliverables ?? null;
       const artifacts =
-        typeof r.key_deliverables === 'string' ? [r.key_deliverables] : null;
+        Array.isArray(artifactsRaw)
+          ? artifactsRaw
+          : typeof artifactsRaw === 'string'
+            ? [artifactsRaw]
+            : null;
       const result = await pool.query(
         `INSERT INTO sessions (
            session_number, date, theme, decisions_made, issues_resolved,
-           issues_opened, artifacts_produced, deep_context_ref
+           issues_opened, artifacts_produced, deep_context_ref, summary
          )
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
          ON CONFLICT (session_number) DO NOTHING`,
         [
           r.session_number ?? r.number,
@@ -195,6 +231,7 @@ async function seedSessions(rows: unknown[]): Promise<number> {
           r.issues_opened ?? null,
           artifacts,
           r.deep_context_ref ?? null,
+          typeof r.summary === 'string' ? r.summary : null,
         ],
       );
       inserted += result.rowCount ?? 0;
@@ -208,11 +245,8 @@ async function seedSessions(rows: unknown[]): Promise<number> {
 }
 
 // ---- model_preferences ----------------------------------------------------
-// JSON: {task, model, provider, notes}
-// DB:   {task_type, provider, model_id, is_default}
-//
-// Each JSON row is assumed to be the default for its task (one entry per task
-// in the seed data). `notes` is not persisted. See INS-011.
+// JSON (after migration 003): {task_type, provider, model_id, is_default, notes}
+// DB: {task_type, provider, model_id, is_default}
 async function seedModelPreferences(rows: unknown[]): Promise<number> {
   let inserted = 0;
   await pool.query('BEGIN');
@@ -224,7 +258,12 @@ async function seedModelPreferences(rows: unknown[]): Promise<number> {
         `INSERT INTO model_preferences (task_type, provider, model_id, is_default)
          VALUES ($1, $2, $3, $4)
          ON CONFLICT DO NOTHING`,
-        [r.task_type ?? r.task, r.provider, r.model_id ?? r.model, r.is_default ?? true],
+        [
+          r.task_type ?? r.task,
+          r.provider,
+          r.model_id ?? r.model,
+          r.is_default ?? true,
+        ],
       );
       inserted += result.rowCount ?? 0;
     }
@@ -236,15 +275,17 @@ async function seedModelPreferences(rows: unknown[]): Promise<number> {
   return inserted;
 }
 
-// system_context and tech_watch are NOT seeded in Phase 0.
-// The JSON shapes are conceptually incompatible with the DDLs:
-//  - system_context JSON is a flat {key, value} dictionary; the DDL is a
-//    versioned document table with content/version/active (INS-012).
-//  - tech_watch JSON is a technology inventory (what's in the stack); the
-//    DDL is a monitoring event log with event_type/title/detected_at (INS-013).
-// Owner decision required before seeding these.
+// system_context and tech_watch are NOT seeded by this script.
+// system_context is seeded as a single versioned document by seed-002.ts (D33).
+// tech_watch is reserved for the Phase 1 monitoring agent; inventory data now
+// lives in `stack_components`, also seeded by seed-002.ts (D34).
 
 async function main(): Promise<void> {
+  const reseed = isReseedRequested();
+  if (reseed) {
+    await truncateManaged();
+  }
+
   const seed = loadSeed();
   const decisions = [
     ...(seed.decisions ?? []),
@@ -257,12 +298,12 @@ async function main(): Promise<void> {
     issues: await seedIssues(issues),
     sessions: await seedSessions(seed.sessions ?? []),
     model_preferences: await seedModelPreferences(seed.model_preferences ?? []),
-    system_context: 0, // skipped — see INS-012
-    tech_watch: 0, // skipped — see INS-013
+    system_context: 0, // seeded by seed-002.ts (D33)
+    tech_watch: 0, // reserved for Phase 1 monitoring agent (D34)
   };
 
   // eslint-disable-next-line no-console
-  console.log('Seed complete. Rows inserted:');
+  console.log(`Seed complete${reseed ? ' (after reseed truncate)' : ''}. Rows inserted:`);
   for (const [table, count] of Object.entries(counts)) {
     // eslint-disable-next-line no-console
     console.log(`  ${table}: ${count}`);

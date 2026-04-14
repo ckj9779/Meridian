@@ -69,7 +69,18 @@
       "Bash(node --env-file=.env.local .meridian/verify-final.mjs)",
       "Bash(rm .meridian/verify-final.mjs)",
       "Bash(wsl.exe -e bash -c \"cd /mnt/d/Meridian && git status --short\")",
-      "Bash(wsl.exe -e bash -c \"cd /mnt/d/Meridian && git diff .meridian/insights/2026-04-14_phase0-scaffold.md | head -30\")"
+      "Bash(wsl.exe -e bash -c \"cd /mnt/d/Meridian && git diff .meridian/insights/2026-04-14_phase0-scaffold.md | head -30\")",
+      "Bash(wsl.exe -e bash -c 'cd /mnt/d/Meridian && git commit -S -m \"feat\\(db\\): add stack_components table, seed system_context and tech inventory\" -m \"- Migration 002: stack_components table for technology inventory \\(D34\\):*)",
+      "Bash(wsl.exe -e bash -c \"git -C /mnt/d/Meridian log --show-signature -1 2>&1 | head -5\")",
+      "Bash(node --env-file=.env.local .meridian/verify-mig3.mjs)",
+      "Bash(rm .meridian/verify-mig3.mjs)",
+      "Bash(node .meridian/reshape-seed.mjs)",
+      "Bash(node --env-file=.env.local .meridian/verify-mig3-seed.mjs)",
+      "Bash(rm .meridian/verify-mig3-seed.mjs)",
+      "Bash(curl -sS -o /dev/null -w \"%{http_code}\" http://localhost:3000/health)",
+      "Bash(netstat -ano)",
+      "Bash(powershell -Command 'Get-NetTCPConnection -LocalPort 3000 -State Listen | ForEach-Object { Stop-Process -Id $_.OwningProcess -Force }')",
+      "Bash(curl -sS -o /dev/null -w \"after=%{http_code}\" http://localhost:3000/health)"
     ]
   }
 }
