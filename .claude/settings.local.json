@@ -62,7 +62,14 @@
       "Bash(wsl.exe -e bash -c \"cd /mnt/d/Meridian && git status --short && echo '---diffstat \\(unstaged\\)---' && git diff --stat\")",
       "Bash(wsl.exe -e bash -c \"cd /mnt/d/Meridian && git diff .meridian/insights/2026-04-14_routing-actions.md | head -60\")",
       "Bash(wsl.exe -e bash -c \"cd /mnt/d/Meridian && git diff docs/GITOPS.md\")",
-      "Bash(wsl.exe -e bash -c \"cd /mnt/d/Meridian && git add -A && git status --short && echo '---STAT---' && git diff --cached --stat\")"
+      "Bash(wsl.exe -e bash -c \"cd /mnt/d/Meridian && git add -A && git status --short && echo '---STAT---' && git diff --cached --stat\")",
+      "Bash(wsl.exe -e bash -c 'cd /mnt/d/Meridian && git commit -S -m \"feat\\(api\\): scaffold Phase 0 Fastify service with migration and seed\" -m \"- Initialize Fastify + TypeScript project \\(D30, D31\\):*)",
+      "Bash(wsl.exe -e bash -c \"git -C /mnt/d/Meridian log --show-signature -1 2>&1 | head -6\")",
+      "Bash(node --env-file=.env.local .meridian/verify-state.mjs)",
+      "Bash(node --env-file=.env.local .meridian/verify-final.mjs)",
+      "Bash(rm .meridian/verify-final.mjs)",
+      "Bash(wsl.exe -e bash -c \"cd /mnt/d/Meridian && git status --short\")",
+      "Bash(wsl.exe -e bash -c \"cd /mnt/d/Meridian && git diff .meridian/insights/2026-04-14_phase0-scaffold.md | head -30\")"
     ]
   }
 }

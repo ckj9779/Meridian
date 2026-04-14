@@ -76,6 +76,57 @@
 - **Action:** Updated `src/scripts/seed.ts` to use `.meridian/data/seed/...`. Document the `.meridian/data/` convention in DATABASE.md (seed data lives alongside other infrastructure artifacts, not at repo root).
 - **Severity:** info (resolved)
 
+---
+
+## Routing Summary
+
+14 insights captured. The Phase 0 scaffold surfaced several doc vs. reality
+gaps that need owner review before Phase 1. Critical ones marked **CRITICAL**.
+
+| # | Insight | Target Doc | Section | Action |
+|---|---------|-----------|---------|--------|
+| INS-001 | `docs/DATABASE.md` | Seed Data (`:484-497`) | Document `.meridian/data/seed/` as canonical seed path; prompt and doc must agree. |
+| INS-002 | `docs/CODING_STANDARDS.md` / Session 07 plan | TypeScript Compiler config | None (doc is correct). Future Session 07 prompts should reference CODING_STANDARDS tsconfig directly instead of restating a weaker version. |
+| INS-003 | `docs/CODING_STANDARDS.md` or Session 07 plan | Env validation | None (doc is correct). Session 07 prompt should list `zod` in prod deps up-front. |
+| INS-004 | `docs/DATABASE.md` | Seed Data (`:484-497`) | Reconcile `.sql` seed convention vs. JSON-driven seed. Pick one; update doc. |
+| INS-005 | `docs/DATABASE.md` | Overview (`:9`) | Update "PostgreSQL 16" → "PostgreSQL 18 (Railway)". Add AGE-vs-PG18 compatibility check as Phase 2 blocker. |
+| INS-006 | `docs/DATABASE.md` | Connection Requirements | Explicitly document `ssl: { rejectUnauthorized: false }` as a Railway-specific workaround. Consider pinning Railway CA long-term. |
+| INS-007 | `docs/DATABASE.md` / seed JSON | `decisions` table | Align seed JSON vocabulary with DDL: `session` vs `session_number`, drop `date`/`related_issues` or extend DDL. |
+| INS-008 | `docs/DATABASE.md` / seed JSON | severity enum | Add `normal` to severity set OR rewrite seed JSON. Script currently remaps to `medium`. |
+| INS-009 | `docs/DATABASE.md` / seed JSON | `issues` table | Big vocabulary mismatch (`title`+`description`+`phase`+`related_decisions`+`notes` vs `summary`+`resolution`+`component`+`blocked_by`+`blocks`). Reconcile. Seed loses `phase`, `related_decisions`. |
+| INS-010 | `docs/DATABASE.md` / seed JSON | `sessions` table | `number` vs `session_number`, `key_deliverables` vs `artifacts_produced` (text[]), seed `summary` dropped. |
+| INS-011 | `docs/DATABASE.md` / seed JSON | `model_preferences` | `task` vs `task_type`, `model` vs `model_id`, missing `is_default` in JSON. |
+| INS-012 | **CRITICAL** `docs/DATABASE.md` + `docs/ARCHITECTURE.md` + seed JSON | `system_context` table | DDL defines versioned document table; JSON provides flat K/V dictionary. **Conceptually incompatible.** Seed skipped. Owner must decide: redesign DDL as K/V, redesign JSON as versioned doc, or split into two tables. |
+| INS-013 | **CRITICAL** `docs/DATABASE.md` + `docs/ARCHITECTURE.md` + seed JSON | `tech_watch` table | DDL defines monitoring *event log*; JSON provides technology *inventory*. **Different concepts.** Seed skipped. Owner must decide: add a `tech_stack` inventory table, repurpose `tech_watch` as inventory, or reshape seed as events. |
+| INS-014 | `.gitignore` (fixed in this commit) | — | `package-lock.json` removed from gitignore (CODING_STANDARDS:335 says it must be committed). Committed starting this commit. |
+
+## Session Statistics
+
+| Metric | Value |
+|--------|-------|
+| Total insights captured | 14 |
+| Environment discoveries | 1 (INS-005) |
+| Assumptions validated | 0 |
+| Assumptions invalidated | 0 |
+| Convention gaps | 11 (INS-001, 002, 003, 004, 007, 008, 009, 010, 011, 012, 013) |
+| Failures and fixes | 1 (INS-014) |
+| Recommendations | 0 |
+| Security observations | 1 (INS-006) |
+| Dependencies flagged | 0 |
+| **Critical gaps requiring owner decision** | **2 (INS-012, INS-013)** |
+| Phase 0 steps completed | 8 of 8 |
+| Files created | 14 (`tsconfig.json`, `package.json`, `package-lock.json`, `src/` tree × 7, `migrations/001_phase0_tables.sql`, `.meridian/data/seed/...`, `.meridian/insights/2026-04-14_phase0-scaffold.md`) — plus `.env.local` (not committed) |
+| Files modified | 3 (`.gitignore`, `.meridian/insights/2026-04-14_routing-actions.md`, `docs/GITOPS.md`, `.claude/settings.local.json`) |
+| Prod deps added | `fastify@5.8.5`, `pg@8.20.0`, `dotenv@17.4.2`, `zod@4.3.6` |
+| Dev deps added | `typescript@6.0.2`, `tsx@4.21.0`, `@types/node@25.6.0`, `@types/pg@8.20.0` |
+| Migration applied | `001_phase0_tables` → 7 tables + `schema_migrations` |
+| Tables populated | `decisions=32`, `issues=23`, `sessions=6`, `model_preferences=4`; `system_context=0`, `tech_watch=0` (critical gaps), `sources=0` (MER-16) |
+| Health endpoint | `GET /health` → 200 `{"status":"ok","version":"0.1.0","phase":0,"database":"connected"}` |
+| Commit hash | `799ae70aaa0abba963e35d97e10e109e195fb71e` (short: `799ae70`) |
+| Signature verified locally | Yes — `Good signature from "Charles K. Johnson <mobile@charleskjohnson.com>"` |
+| Pushed to GitHub | No (owner pushes manually per prompt) |
+
+
 ### INS-002 | convention_gap | Step 0 (pre-flight)
 - **Finding:** `docs/CODING_STANDARDS.md:34` specifies TypeScript `module: "NodeNext"` and a stricter compiler option set (`noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`, `isolatedModules`, etc.) than the prompt's Step 2 tsconfig (`module: "Node16"`, fewer strict flags).
 - **Routes to:** Session 07 plan.
