@@ -1,5 +1,3 @@
-<!-- Copyright (c) 2026 ckj9779. Licensed under BSL 1.1. See LICENSE. -->
-
 # MERIDIAN
 
 Personal knowledge graph and intelligence platform.
@@ -79,11 +77,13 @@ Known facts about the development environment. Updated by the insight protocol a
 | OS | Windows + WSL (Ubuntu) | Session 05 |
 | Machine | StarshipOne | Session 05 |
 | Local repo path | `/mnt/d/Meridian/` | Session 05, verified |
-| Git context | WSL — GPG may require `export GPG_TTY=$(tty)` | Session 05 |
-| Node.js | TBD — confirm version on first use | — |
-| Python | TBD — confirm version on first use | — |
-| GitHub CLI (`gh`) | TBD — confirm availability and auth status | — |
+| Git context | WSL is canonical for signing and push. GPG key `799AD4A789D27DA8` lives in WSL (`/home/cjohnson/.gnupg`). Git Bash available but isolated keyring — do not use for signed operations. | Git-setup ledger INS-001, INS-007 |
+| GPG | v2.4.5 (WSL). Key: `rsa4096/799AD4A789D27DA8`, expires 2028. Passphrase cached via gpg-agent. | Git-setup ledger INS-001, INS-009 |
+| Node.js | v22.17.0 | Git-setup ledger INS-001 |
+| Python | 3.13.5 | Git-setup ledger INS-001 |
+| GitHub CLI (`gh`) | Authenticated as ckj9779 | Git-setup ledger INS-001 |
 | Railway CLI | TBD — confirm availability | — |
+| Push method | SSH from WSL (D29). Configure SSH key if not already present. | Git-setup ledger INS-010 |
 
 **When you discover a new environment fact, log it as an insight (type: `environment`) and propose an update to this table.**
 
@@ -260,7 +260,7 @@ When a new decision is made during execution, log it as an insight (type: `recom
 ├── .claude/
 │   └── settings.local.json
 ├── .meridian/
-│   ├── header-{ts,py,sh,sql,md,css}.txt  ← Copyright header templates per language (flat files)
+│   ├── headers/              ← Copyright header templates per language
 │   ├── hooks/                ← Git hooks (pre-commit, etc.)
 │   └── insights/             ← Session insight ledgers (YYYY-MM-DD_task-slug.md)
 ├── CLAUDE.md                 ← This file. Auto-loaded every session.

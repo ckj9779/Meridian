@@ -42,6 +42,92 @@ git log --show-signature -1
 - On macOS, you may need: `export GPG_TTY=$(tty)` in your shell profile.
 - Ensure the GPG key email matches `user.email` and your GitHub verified email.
 
+### Email verification check (run before GPG key generation)
+
+```bash
+gh api user/emails --jq '.[] | select(.email=="mobile@charleskjohnson.com")'
+```
+
+If empty, the email is not verified on GitHub. Add and verify it at
+https://github.com/settings/emails before generating the GPG key —
+signatures won't show as "Verified" otherwise.
+
+If `gh` lacks the `user` scope, refresh first: `gh auth refresh -s user`.
+
+### Canonical signing environment
+
+**WSL (Ubuntu on StarshipOne) is canonical.**
+
+The GPG secret key (`rsa4096/799AD4A789D27DA8`, fingerprint
+`5B68E52AEEA21C15A7A5C868799AD4A789D27DA8`, expires 2028-04-13) lives at
+`/home/cjohnson/.gnupg`. Git Bash on Windows has an isolated GPG keyring
+and **must not** be used for signed commits — the key does not exist there.
+
+All `git commit`, `git tag`, and `git push` operations that require signing
+must run from a WSL terminal.
+
+### GPG agent caching
+
+To avoid repeated passphrase prompts during development sessions, configure
+`~/.gnupg/gpg-agent.conf`:
+
+```
+default-cache-ttl 7200
+max-cache-ttl 14400
+```
+
+Reload after changes: `gpgconf --kill gpg-agent`
+
+**Agent warmup:** Before a batch of commits (especially when commits will be
+issued by tools or scripts that lack a TTY), run once in an interactive
+terminal:
+
+```bash
+echo "test" | gpg --clearsign > /dev/null
+```
+
+This primes the passphrase cache for the session. Without it, non-TTY
+commit attempts fail with `Inappropriate ioctl for device`.
+
+## Pushing — SSH from WSL (D29)
+
+SSH from WSL is the canonical push strategy.
+
+The signing key lives in WSL. Pushing from WSL via SSH keeps the entire
+sign → commit → push chain in a single environment with no Windows/WSL
+credential-helper interop.
+
+### Setup (one-time)
+
+```bash
+# Generate SSH key if not present
+ssh-keygen -t ed25519 -C "mobile@charleskjohnson.com"
+
+# Start agent and add key
+eval "$(ssh-agent -s)"
+ssh-add ~/.ssh/id_ed25519
+
+# Copy public key to clipboard (install xclip if needed)
+cat ~/.ssh/id_ed25519.pub
+```
+
+Add the public key to GitHub at **Settings → SSH and GPG keys → New SSH key**.
+
+Switch the remote to SSH:
+
+```bash
+git remote set-url origin git@github.com:ckj9779/Meridian.git
+```
+
+### Verify
+
+```bash
+ssh -T git@github.com
+# → "Hi ckj9779! You've successfully authenticated..."
+```
+
+All future `git push` and `git pull` operations should run from WSL.
+
 ## Branching Strategy
 
 ### Branch naming convention
@@ -154,13 +240,35 @@ Every source file must have a copyright header as its first line(s). The pre-com
 | File type | Header |
 |-----------|--------|
 | .js, .ts, .jsx, .tsx, .mjs | `// Copyright (c) 2026 ckj9779. Licensed under BSL 1.1. See LICENSE.` |
+| .sh | `# Copyright (c) 2026 ckj9779. Licensed under BSL 1.1. See LICENSE.` |
 | .py | `# Copyright (c) 2026 ckj9779. Licensed under BSL 1.1. See LICENSE.` |
 | .sql | `-- Copyright (c) 2026 ckj9779. Licensed under BSL 1.1. See LICENSE.` |
 | .md (schema/prompt docs) | `<!-- Copyright (c) 2026 ckj9779. Licensed under BSL 1.1. See LICENSE. -->` |
+| .css | `/* Copyright (c) 2026 ckj9779. Licensed under BSL 1.1. See LICENSE. */` |
 
 Templates are stored in `.meridian/header-{lang}.txt`.
 
 If the hook rejects your commit, add the appropriate header and re-stage.
+
+### Hook installation
+
+Git hooks live in `.meridian/hooks/` and are activated via:
+
+```bash
+git config core.hooksPath .meridian/hooks
+```
+
+Do not use `.git/hooks/` symlinks — NTFS-mounted paths from WSL do not
+reliably support symlinks (`ln` fails with "Operation not permitted"). The
+`core.hooksPath` approach works across all environments.
+
+This setting is **per-clone** — each fresh clone must run the config
+command once.
+
+Current hooks:
+- `check-headers.sh` — pre-commit, verifies copyright headers on staged
+  source files. WARN mode by default; set `MERIDIAN_ENFORCE_HEADERS=1`
+  to block commits missing headers.
 
 ## .gitignore — What Never Gets Committed
 
