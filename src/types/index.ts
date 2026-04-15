@@ -140,6 +140,9 @@ export interface ApiSuccess<T> {
     total?: number;
     page?: number;
     per_page?: number;
+    // Phase 0 read-routes pagination (see INS-006, 2026-04-15_phase0-api-routes).
+    limit?: number;
+    offset?: number;
   };
 }
 

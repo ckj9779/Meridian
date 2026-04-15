@@ -4,6 +4,12 @@ import Fastify from 'fastify';
 import { config } from './config/env.js';
 import { pool } from './config/database.js';
 import { healthRoute } from './routes/health.js';
+import { decisionsRoute } from './routes/decisions.js';
+import { issuesRoute } from './routes/issues.js';
+import { sessionsRoute } from './routes/sessions.js';
+import { contextRoute } from './routes/context.js';
+import { stackRoute } from './routes/stack.js';
+import { modelsRoute } from './routes/models.js';
 
 const app = Fastify({
   logger: {
@@ -12,6 +18,12 @@ const app = Fastify({
 });
 
 await app.register(healthRoute);
+await app.register(decisionsRoute);
+await app.register(issuesRoute);
+await app.register(sessionsRoute);
+await app.register(contextRoute);
+await app.register(stackRoute);
+await app.register(modelsRoute);
 
 async function shutdown(signal: string): Promise<void> {
   app.log.info({ signal }, 'Shutdown signal received');
