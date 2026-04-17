@@ -155,8 +155,19 @@ Six primary flows (detailed in SAD Section 8):
 
 ## Key Integration Points
 
-### Zuplo MCP Server Handler
-Auto-exposes API endpoints as MCP tools. Claude discovers and invokes them natively. This is what eliminates custom orchestration code. Every lens, every scanner endpoint, the staging write endpoint, and the graph write endpoint surface as MCP tools.
+### Zuplo Gateway (D06, scope clarified by D72)
+
+**D06 scope clarification (per D72, Session 11):** Zuplo's responsibility is the unified
+HTTP gateway — authentication, rate limiting, trace-ID injection, and policy pipeline for
+control-plane traffic to Meridian. MCP (Model Context Protocol) hosting is explicitly
+**not** Zuplo's responsibility. Meridian's MCP server lives in its own codebase
+(`meridian-mcp`, MER-60, deployed per D72 Variant A in Sprint 14). This scope narrowing
+supersedes the Session 02 framing that Zuplo might host MCP via its Server Handler
+feature (MER-22, now resolved as won't-do).
+
+Zuplo remains the unified entry point for all control-plane HTTP traffic: API queries,
+webhook receivers, and future Clerk-authenticated frontend requests. Edge/mobile surface
+traffic (D68) is architecturally reserved but not yet routed through Zuplo.
 
 ### AGE Connection Requirement
 Every new database connection must execute:
