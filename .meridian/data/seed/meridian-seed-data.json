@@ -1,9 +1,9 @@
 {
   "_meta": {
-    "generated": "2026-04-14",
-    "generated_by": "Session 07 project session",
-    "covers_through": "Session 06",
-    "notes": "Session 07 decisions (D30-D32) listed as pending. Update after session closes."
+    "generated": "2026-04-16",
+    "generated_by": "Session 12 Sprint 08.5 Track 1",
+    "covers_through": "Session 11",
+    "notes": "Canon back-fill per MER-51/D70. All 74 decisions (D01-D74), 7 canon flags, sessions 1-11, issues through MER-63."
   },
   "decisions": [
     {
@@ -16,7 +16,8 @@
       "related_issues": [
         "CAG-01"
       ],
-      "session_number": 1
+      "session_number": 1,
+      "canon": false
     },
     {
       "id": "D02",
@@ -30,7 +31,8 @@
         "CAG-01",
         "CAG-02"
       ],
-      "session_number": 1
+      "session_number": 1,
+      "canon": false
     },
     {
       "id": "D03",
@@ -41,7 +43,8 @@
       "related_issues": [
         "CAG-04"
       ],
-      "session_number": 1
+      "session_number": 1,
+      "canon": true
     },
     {
       "id": "D04",
@@ -52,7 +55,8 @@
       "related_issues": [
         "CAG-01"
       ],
-      "session_number": 2
+      "session_number": 2,
+      "canon": false
     },
     {
       "id": "D05",
@@ -63,18 +67,20 @@
       "related_issues": [
         "MER-01"
       ],
-      "session_number": 2
+      "session_number": 2,
+      "canon": false
     },
     {
       "id": "D06",
       "summary": "Zuplo as unified API/MCP layer",
-      "rationale": "MCP Server Handler exposes retrieval lenses as agent-discoverable tools. AI gateway features (semantic caching, token-based rate limiting, model routing) solve cost control. Observability included. Edge deployment with GitOps.",
+      "rationale": "MCP Server Handler exposes retrieval lenses as agent-discoverable tools. AI gateway features (semantic caching, token-based rate limiting, model routing) solve cost control. Observability included. Edge deployment with GitOps. Scope narrowed by D72: Zuplo responsibility is unified HTTP gateway (auth, rate-limit, trace, policy pipeline). MCP hosting is NOT Zuplo's responsibility.",
       "date": "2026-04-12",
       "status": "active",
       "related_issues": [
         "MER-04"
       ],
-      "session_number": 2
+      "session_number": 2,
+      "canon": false
     },
     {
       "id": "D07",
@@ -83,7 +89,8 @@
       "date": "2026-04-12",
       "status": "active",
       "related_issues": [],
-      "session_number": 2
+      "session_number": 2,
+      "canon": false
     },
     {
       "id": "D08",
@@ -92,7 +99,8 @@
       "date": "2026-04-12",
       "status": "active",
       "related_issues": [],
-      "session_number": 2
+      "session_number": 2,
+      "canon": false
     },
     {
       "id": "D09",
@@ -101,7 +109,8 @@
       "date": "2026-04-12",
       "status": "active",
       "related_issues": [],
-      "session_number": 2
+      "session_number": 2,
+      "canon": false
     },
     {
       "id": "D10",
@@ -112,7 +121,8 @@
       "related_issues": [
         "MER-02"
       ],
-      "session_number": 3
+      "session_number": 3,
+      "canon": false
     },
     {
       "id": "D11",
@@ -123,7 +133,8 @@
       "superseded_by": "D22",
       "superseded_notes": "D22 moves model selection to user-facing preference in the Meridian interface. Zuplo executes routing but does not decide it.",
       "related_issues": [],
-      "session_number": 3
+      "session_number": 3,
+      "canon": false
     },
     {
       "id": "D12",
@@ -134,7 +145,8 @@
       "related_issues": [
         "MER-06"
       ],
-      "session_number": 3
+      "session_number": 3,
+      "canon": false
     },
     {
       "id": "D13",
@@ -145,7 +157,8 @@
       "related_issues": [
         "MER-03"
       ],
-      "session_number": 3
+      "session_number": 3,
+      "canon": false
     },
     {
       "id": "D14",
@@ -156,7 +169,8 @@
       "related_issues": [
         "MER-03"
       ],
-      "session_number": 3
+      "session_number": 3,
+      "canon": false
     },
     {
       "id": "D15",
@@ -167,7 +181,8 @@
       "related_issues": [
         "MER-05"
       ],
-      "session_number": 3
+      "session_number": 3,
+      "canon": false
     },
     {
       "id": "D16",
@@ -178,7 +193,8 @@
       "related_issues": [
         "MER-08"
       ],
-      "session_number": 4
+      "session_number": 4,
+      "canon": false
     },
     {
       "id": "D17",
@@ -189,7 +205,8 @@
       "related_issues": [
         "MER-08"
       ],
-      "session_number": 4
+      "session_number": 4,
+      "canon": false
     },
     {
       "id": "D18",
@@ -200,7 +217,8 @@
       "related_issues": [
         "MER-08"
       ],
-      "session_number": 4
+      "session_number": 4,
+      "canon": false
     },
     {
       "id": "D19",
@@ -211,7 +229,8 @@
       "related_issues": [
         "MER-08"
       ],
-      "session_number": 4
+      "session_number": 4,
+      "canon": false
     },
     {
       "id": "D20",
@@ -222,7 +241,8 @@
       "related_issues": [
         "MER-10"
       ],
-      "session_number": 4
+      "session_number": 4,
+      "canon": false
     },
     {
       "id": "D21",
@@ -233,7 +253,8 @@
       "related_issues": [
         "MER-10"
       ],
-      "session_number": 4
+      "session_number": 4,
+      "canon": false
     },
     {
       "id": "D22",
@@ -244,7 +265,8 @@
       "related_issues": [
         "MER-04"
       ],
-      "session_number": 4
+      "session_number": 4,
+      "canon": false
     },
     {
       "id": "D23",
@@ -255,7 +277,8 @@
       "related_issues": [
         "MER-11"
       ],
-      "session_number": 4
+      "session_number": 4,
+      "canon": false
     },
     {
       "id": "D24",
@@ -267,7 +290,8 @@
         "MER-11",
         "MER-03"
       ],
-      "session_number": 4
+      "session_number": 4,
+      "canon": false
     },
     {
       "id": "D25",
@@ -278,7 +302,8 @@
       "related_issues": [
         "MER-14"
       ],
-      "session_number": 5
+      "session_number": 5,
+      "canon": false
     },
     {
       "id": "D26",
@@ -289,7 +314,8 @@
       "related_issues": [
         "MER-14"
       ],
-      "session_number": 6
+      "session_number": 6,
+      "canon": false
     },
     {
       "id": "D27",
@@ -300,18 +326,21 @@
       "related_issues": [
         "MER-14"
       ],
-      "session_number": 6
+      "session_number": 6,
+      "canon": false
     },
     {
       "id": "D28",
       "summary": ".gitattributes with text=auto eol=lf; .claude/settings.local.json tracked",
-      "rationale": ".claude/settings.local.json is project-specific config inherited by Claude Code sessions — not user-specific. .gitattributes ensures consistent line endings across WSL and Windows environments.",
+      "rationale": ".claude/settings.local.json is project-specific config inherited by Claude Code sessions — not user-specific. .gitattributes ensures consistent line endings across WSL and Windows environments. Superseded in part by D71: settings.local.json tracking assertion reversed — file is gitignored per Sprint 08.5 Track 1. .gitattributes line-endings assertion stands.",
       "date": "2026-04-14",
       "status": "active",
+      "superseded_in_part_by": "D71",
       "related_issues": [
         "MER-14"
       ],
-      "session_number": 6
+      "session_number": 6,
+      "canon": false
     },
     {
       "id": "D29",
@@ -322,30 +351,509 @@
       "related_issues": [
         "MER-18"
       ],
-      "session_number": 6
-    }
-  ],
-  "decisions_pending_session_07": [
+      "session_number": 6,
+      "canon": false
+    },
     {
       "id": "D30",
       "summary": "npm as package manager",
       "rationale": "Ships with Node.js v22. No additional install or configuration. Solo project with single service doesn't need yarn/pnpm monorepo features.",
-      "date": "2026-04-14",
-      "session_number": 7
+      "date": "2026-04-15",
+      "status": "active",
+      "related_issues": [],
+      "session_number": 7,
+      "canon": false
     },
     {
       "id": "D31",
       "summary": "Fastify as Node.js API framework",
       "rationale": "TypeScript-first (aligns with strict TS standard). Built-in JSON Schema validation for webhook payloads and API contracts. Plugin system maps to modular lens architecture. Lightweight — heavy compute runs in Agents API, not on Railway.",
-      "date": "2026-04-14",
-      "session_number": 7
+      "date": "2026-04-15",
+      "status": "active",
+      "related_issues": [],
+      "session_number": 7,
+      "canon": false
     },
     {
       "id": "D32",
       "summary": "SSE for server-to-client streaming, not WebSockets",
       "rationale": "All streaming cases (triage conversation, briefing assembly, agent monitor) are server-to-client. SSE flows through Zuplo without special handling — preserves auth, rate limiting, observability. WebSockets would bypass Zuplo, losing harness layer constraints. Fastify supports SSE natively. Not needed until frontend phase.",
-      "date": "2026-04-14",
-      "session_number": 7
+      "date": "2026-04-15",
+      "status": "active",
+      "related_issues": [],
+      "session_number": 7,
+      "canon": false
+    },
+    {
+      "id": "D33",
+      "summary": "system_context as versioned document, seed reshaped",
+      "rationale": "Versioned document with version, content, change_summary, active. Single active row with all K/V pairs in content JSON.",
+      "date": "2026-04-15",
+      "status": "active",
+      "related_issues": [],
+      "session_number": 7,
+      "canon": false
+    },
+    {
+      "id": "D34",
+      "summary": "Split tech inventory from tech event log",
+      "rationale": "New stack_components table for static inventory. tech_watch remains event log for Phase 1 monitoring agent. Separates static inventory from temporal event stream.",
+      "date": "2026-04-15",
+      "status": "active",
+      "related_issues": [],
+      "session_number": 7,
+      "canon": false
+    },
+    {
+      "id": "D35",
+      "summary": "Dual execution runtime (Managed Agents primary, Routines as progression)",
+      "rationale": "Managed Agents for complex/interactive work. Routines for bounded/scheduled. All missions start as Managed Agents. After 30 days meeting promotion criteria, missions surface for user-controlled promotion. Extended by D48: promotion gated on observability readiness.",
+      "date": "2026-04-15",
+      "status": "active",
+      "related_issues": [],
+      "session_number": 8,
+      "canon": false
+    },
+    {
+      "id": "D36",
+      "summary": "Cloudflare as DNS registrar and authoritative DNS",
+      "rationale": "At-cost pricing, DNSSEC, single DNS control plane. Robust API for future programmatic DNS management. DNS-only mode (no proxy) for Zuplo and Vercel records. Data sovereignty alignment.",
+      "date": "2026-04-15",
+      "status": "active",
+      "related_issues": [],
+      "session_number": 8,
+      "canon": false
+    },
+    {
+      "id": "D37",
+      "summary": "Separate meridian-gateway repo for Zuplo configuration",
+      "rationale": "Zuplo expects repo-root ownership. Different deployment targets. Prevents cross-deployment trigger noise. Same BSL 1.1 license, same conventions. Precedent followed by D72 for meridian-mcp.",
+      "date": "2026-04-15",
+      "status": "active",
+      "related_issues": [],
+      "session_number": 8,
+      "canon": false
+    },
+    {
+      "id": "D38",
+      "summary": "mydatasphere.dev as project domain",
+      "rationale": ".dev TLD enforces HTTPS. Descriptive of the project scope. Clean subdomain pattern: api.mydatasphere.dev for Zuplo gateway, app.mydatasphere.dev for future Vercel frontend.",
+      "date": "2026-04-15",
+      "status": "active",
+      "related_issues": [],
+      "session_number": 8,
+      "canon": false
+    },
+    {
+      "id": "D39",
+      "summary": "Dedicated Meridian Clerk application in Personal workspace",
+      "rationale": "Application isolation. Perkin Discovery Tool (existing app) transferable independently without affecting Meridian.",
+      "date": "2026-04-16",
+      "status": "active",
+      "related_issues": [],
+      "session_number": 9,
+      "canon": false
+    },
+    {
+      "id": "D40",
+      "summary": "30-day personal PAT via Clerk JWT Template, monthly rotation",
+      "rationale": "Clerk JWT Templates don't support per-token revocation — token lifetime IS the worst-case exposure window. 30-day lifetime balances security with usability. Meridian tracks mint date and expiry, sends reminder on day 25.",
+      "date": "2026-04-16",
+      "status": "active",
+      "related_issues": [
+        "MER-35"
+      ],
+      "session_number": 9,
+      "canon": false
+    },
+    {
+      "id": "D41",
+      "summary": "Resend for outbound system notifications",
+      "rationale": "Already in Chaz's stack. Sender domain under mydatasphere.dev with SPF/DKIM/DMARC on Cloudflare.",
+      "date": "2026-04-16",
+      "status": "active",
+      "related_issues": [
+        "MER-28"
+      ],
+      "session_number": 9,
+      "canon": false
+    },
+    {
+      "id": "D42",
+      "summary": "Per-machine signing identities (SSH + GPG), never shared",
+      "rationale": "Each machine maintains its own SSH key and GPG key. Independent revocation if machine lost or decommissioned. Extends to non-human actors. Initial roster: StarshipOne, Mac Mini (pending MER-31).",
+      "date": "2026-04-16",
+      "status": "active",
+      "related_issues": [
+        "MER-31"
+      ],
+      "session_number": 9,
+      "canon": false
+    },
+    {
+      "id": "D43",
+      "summary": "Universal Attribution Principle",
+      "rationale": "Every action that mutates state carries attribution to a specific identity. Identities never shared across humans, machines, or agents. Attribution captured at time of action, never reconstructed after the fact.",
+      "date": "2026-04-16",
+      "status": "active",
+      "related_issues": [
+        "MER-34"
+      ],
+      "session_number": 9,
+      "canon": true
+    },
+    {
+      "id": "D44",
+      "summary": "M2M per-machine Clerk identity, 2hr JWT, approve-to-mint at maturity",
+      "rationale": "Two-layer: Machine Secret Key (long-lived, 180-day rotation) and M2M Token (2hr session JWT). Mint-per-session. Maturity phase: notification, approve, mint flow. No silent renewals.",
+      "date": "2026-04-16",
+      "status": "active",
+      "related_issues": [
+        "MER-30",
+        "MER-36"
+      ],
+      "session_number": 9,
+      "canon": false
+    },
+    {
+      "id": "D45",
+      "summary": "claude.ai is planning-only; read access post-audit-layer; no stored credentials",
+      "rationale": "Bootstrap: no API access. Post-audit: read-only via PAT provided per-conversation. Maturity: approve-to-mint read-only session token. Writes permanently excluded from this surface.",
+      "date": "2026-04-16",
+      "status": "active",
+      "related_issues": [],
+      "session_number": 9,
+      "canon": false
+    },
+    {
+      "id": "D46",
+      "summary": "Repos stay public (BSL 1.1); security/observability gate before new data exposure",
+      "rationale": "Security posture relies on authentication (D25, D66), not obscurity. Critical sequencing gate: auth + observability must be verified operational before any new data exposed via API.",
+      "date": "2026-04-16",
+      "status": "active",
+      "related_issues": [],
+      "session_number": 9,
+      "canon": false
+    },
+    {
+      "id": "D47",
+      "summary": "meridian-api as active Clerk machine identity for outbound calls",
+      "rationale": "Meridian's own outbound calls (Anthropic API, Resend, source fetches) attributed to this identity. Single identity for Railway service; segment per-function only if trust boundaries diverge later.",
+      "date": "2026-04-16",
+      "status": "active",
+      "related_issues": [],
+      "session_number": 9,
+      "canon": false
+    },
+    {
+      "id": "D48",
+      "summary": "Autonomy-Observability Cascade",
+      "rationale": "System vigilance escalates in inverse proportion to human presence. Five-tier cascade. Promotion between tiers gated on proving the next tier's observability is operational.",
+      "date": "2026-04-16",
+      "status": "active",
+      "related_issues": [
+        "MER-47"
+      ],
+      "session_number": 9,
+      "canon": true
+    },
+    {
+      "id": "D49",
+      "summary": "Local cold storage primary, encrypted cloud DR only",
+      "rationale": "Primary cold storage is local external drive under physical control. Meridian tracks storage topology. Cloud (R2) is encrypted DR only with owner-controlled key.",
+      "date": "2026-04-16",
+      "status": "active",
+      "related_issues": [],
+      "session_number": 9,
+      "canon": false
+    },
+    {
+      "id": "D50",
+      "summary": "Pino + ULID trace IDs; OpenTelemetry deferred to agent fan-out",
+      "rationale": "Linear trace served by ULID correlation. OTel adopted when agent fan-out creates multi-service traces requiring distributed tracing.",
+      "date": "2026-04-16",
+      "status": "active",
+      "related_issues": [],
+      "session_number": 9,
+      "canon": false
+    },
+    {
+      "id": "D51",
+      "summary": "Inbox-posture bootstrap alerts via Resend; 5 alert types",
+      "rationale": "Auth failure spike, unknown caller, write outside session, PAT expiry, Machine Secret Key expiry. Email-based, not pager. Bootstrap-level alerting for pre-agent operational awareness.",
+      "date": "2026-04-16",
+      "status": "active",
+      "related_issues": [],
+      "session_number": 9,
+      "canon": false
+    },
+    {
+      "id": "D52",
+      "summary": "audit_events and agent_events separate, trace_id-linked",
+      "rationale": "Different cardinality, retention, primary concerns. Trace_id links them. Independent audit streams, reconcilable but not collapsed.",
+      "date": "2026-04-16",
+      "status": "active",
+      "related_issues": [],
+      "session_number": 9,
+      "canon": false
+    },
+    {
+      "id": "D53",
+      "summary": "Data Sovereignty at Rest",
+      "rationale": "Data at rest defaults to sovereign local storage. Cloud storage is encrypted DR only with owner-controlled key. Scope clarified by D61: sovereign sources stay local, operational/derived may be cloud-hosted because reconstructable.",
+      "date": "2026-04-16",
+      "status": "active",
+      "related_issues": [
+        "MER-48"
+      ],
+      "session_number": 9,
+      "canon": true
+    },
+    {
+      "id": "D54",
+      "summary": "Observability as Knowledge Infrastructure",
+      "rationale": "Observability data is first-class knowledge, not a security byproduct. Every observability event has two consumers: security/audit path and knowledge/context path. Both served from the same capture.",
+      "date": "2026-04-16",
+      "status": "active",
+      "related_issues": [
+        "MER-49"
+      ],
+      "session_number": 9,
+      "canon": true
+    },
+    {
+      "id": "D55",
+      "summary": "Deep Context as Standard Capture Protocol",
+      "rationale": "Three-tier capture model: event capture per-action, session synthesis per-session-close, deep context per-planning-session. Every deep context carries a structured YAML frontmatter metadata header.",
+      "date": "2026-04-16",
+      "status": "active",
+      "related_issues": [
+        "MER-29"
+      ],
+      "session_number": 9,
+      "canon": true
+    },
+    {
+      "id": "D56",
+      "summary": "Sprint 08.5 inserted (two-track structure)",
+      "rationale": "Track 1 (Claude Code reconciliation: migration 004 fixes, secrets infrastructure, doc updates) + Track 2 (vendor confirmations: Clerk, Zuplo, Railway, Cloudflare). Sprint 09 Phase 1 hotfix does not ship until both tracks close.",
+      "date": "2026-04-16",
+      "status": "active",
+      "related_issues": [],
+      "session_number": 11,
+      "canon": false
+    },
+    {
+      "id": "D57",
+      "summary": "Sprint 10 split into 10a and 10b",
+      "rationale": "10a: Orchestration + Audit Foundation. 10b: Notifications + Cold Storage + Alerts + Query. One-week burn-in between. Audit layer proves itself operational before downstream work depends on it.",
+      "date": "2026-04-16",
+      "status": "active",
+      "related_issues": [],
+      "session_number": 11,
+      "canon": false
+    },
+    {
+      "id": "D58",
+      "summary": "MER-29 (deep-context skill update per D55) moves to Sprint 08.5 Track 1",
+      "rationale": "Forward-compliance with D55 on every future session close. Skill file is canonical protocol implementation; hours-scale work, should happen before next unsupervised session.",
+      "date": "2026-04-16",
+      "status": "active",
+      "related_issues": [
+        "MER-29"
+      ],
+      "session_number": 11,
+      "canon": false
+    },
+    {
+      "id": "D59",
+      "summary": "Attribution via identities FK registry, full attribution record",
+      "rationale": "Every action-recording table carries actor_identity_id FK to identities registry. Full record per action: actor_identity_id, endpoint, environment, host, ip_address, occurred_at. Initial seed: system:anonymous, machine:starshipone-claude-code, machine:meridian-api, human:chaz-clerk-pat.",
+      "date": "2026-04-16",
+      "status": "active",
+      "related_issues": [
+        "MER-34"
+      ],
+      "session_number": 11,
+      "canon": false
+    },
+    {
+      "id": "D60",
+      "summary": "Sibling observability_readiness table for D48 promotion evaluation",
+      "rationale": "Two-table promotion check: promotion_thresholds (behavioral) AND observability_readiness (observational). Sibling table allows tier-specific readiness profiles. Permissive defaults until Sprint 10a populates real readiness rows.",
+      "date": "2026-04-16",
+      "status": "active",
+      "related_issues": [
+        "MER-47"
+      ],
+      "session_number": 11,
+      "canon": false
+    },
+    {
+      "id": "D61",
+      "summary": "Railway operational/derived; local disk sovereign source; no inversion",
+      "rationale": "Meridian's sovereign data is source material (emails, documents) on local disk. Railway holds derived and operational data — all reconstructable from sources. D53 canon satisfied by existing design; no topology inversion required.",
+      "date": "2026-04-16",
+      "status": "active",
+      "related_issues": [
+        "MER-48"
+      ],
+      "session_number": 11,
+      "canon": false
+    },
+    {
+      "id": "D62",
+      "summary": "Two Clerk JWT templates: meridian-human-pat and meridian-machine-m2m",
+      "rationale": "30-day lifetime on human-pat (D40); 2-hour on machine-m2m (D44). Independent signing keys. Shared template means emergency rotation of one class kills the other — self-inflicted agent outage on every human credential scare.",
+      "date": "2026-04-16",
+      "status": "active",
+      "related_issues": [
+        "MER-39"
+      ],
+      "session_number": 11,
+      "canon": false
+    },
+    {
+      "id": "D63",
+      "summary": "Approval endpoints require session JWT; reject PAT",
+      "rationale": "Approval routes validate session JWT only. D48 Tier 2 human-approved derives meaning from presence at approval time; stored PAT cannot prove presence.",
+      "date": "2026-04-16",
+      "status": "active",
+      "related_issues": [],
+      "session_number": 11,
+      "canon": false
+    },
+    {
+      "id": "D64",
+      "summary": "/health public narrow; /v1/system Clerk-authenticated",
+      "rationale": "/health returns status ok/degraded only. Public, exempt from shared-secret middleware for Railway deploy probe. /v1/system behind Zuplo Clerk JWT Auth policy with rich body. Triggered D66 canon elevation.",
+      "date": "2026-04-16",
+      "status": "active",
+      "related_issues": [
+        "MER-43"
+      ],
+      "session_number": 11,
+      "canon": false
+    },
+    {
+      "id": "D65",
+      "summary": "Branch protection after Sprint 09 Phase 2 (SSH verified)",
+      "rationale": "Enable on both repos after Phase 2 SSH work closes. Rules: require signed commits, require linear history, disable force pushes, disable deletions, disable administrator bypass. D25 already voluntarily honored; platform enforcement tightens.",
+      "date": "2026-04-16",
+      "status": "active",
+      "related_issues": [
+        "MER-31"
+      ],
+      "session_number": 11,
+      "canon": false
+    },
+    {
+      "id": "D66",
+      "summary": "Universal API Authentication",
+      "rationale": "Every API endpoint that returns or mutates data requires authentication. No data-returning API surface is ever anonymously accessible. Shared-secret layer is transport integrity, not authentication. Exception list: /health only for Meridian.",
+      "date": "2026-04-16",
+      "status": "active",
+      "related_issues": [
+        "MER-26",
+        "MER-27"
+      ],
+      "session_number": 11,
+      "canon": true
+    },
+    {
+      "id": "D67",
+      "summary": "Webhook HMAC validation at Zuplo (Cloudflare Workers fallback)",
+      "rationale": "Zuplo validates inbound webhook HMAC signatures as a policy on webhook routes, attributes to machine:<provider>-webhook per D43. Fallback: Cloudflare Workers edge validator if Zuplo reveals limitations.",
+      "date": "2026-04-16",
+      "status": "active",
+      "related_issues": [
+        "MER-59"
+      ],
+      "session_number": 11,
+      "canon": false
+    },
+    {
+      "id": "D68",
+      "summary": "Dual-surface architecture adopted; edge/mobile deferred",
+      "rationale": "Control plane (api.mydatasphere.dev via Zuplo/Railway with Clerk auth). Edge/mobile surface deferred. Credential boundary: edge surface does NOT mint own long-lived credentials. Reactivation triggers defined.",
+      "date": "2026-04-16",
+      "status": "active",
+      "related_issues": [
+        "MER-61"
+      ],
+      "session_number": 11,
+      "canon": false
+    },
+    {
+      "id": "D69",
+      "summary": "Seed default ON CONFLICT DO UPDATE for mutable columns",
+      "rationale": "Flip from ON CONFLICT DO NOTHING default. Immutable columns preserved. Mutable columns update. --reseed stays as dev-only truncate path. New --dry-run flag prints changes without writing.",
+      "date": "2026-04-16",
+      "status": "active",
+      "related_issues": [
+        "MER-46"
+      ],
+      "session_number": 11,
+      "canon": false
+    },
+    {
+      "id": "D70",
+      "summary": "canon BOOLEAN column on decisions table + docs/CANON.md mirror",
+      "rationale": "Queryable canon flag per master CLAUDE.md. Boolean matches binary semantic. docs/CANON.md is human-readable mirror of canon subset. Seed back-fill: D03, D43, D48, D53, D54, D55, D66 = true.",
+      "date": "2026-04-16",
+      "status": "active",
+      "related_issues": [
+        "MER-51"
+      ],
+      "session_number": 11,
+      "canon": false
+    },
+    {
+      "id": "D71",
+      "summary": ".claude/settings.local.json untracked (supersedes D28 in part)",
+      "rationale": "git rm --cached .claude/settings.local.json in Sprint 08.5 Track 1. Three sessions of observed churn confirm machine-local state, not project-shared config. D28 .gitattributes assertion stands; tracking assertion reverses.",
+      "date": "2026-04-16",
+      "status": "active",
+      "related_issues": [],
+      "session_number": 11,
+      "canon": false
+    },
+    {
+      "id": "D72",
+      "summary": "MCP architecture: own codebase (meridian-mcp), transport-abstracted, staggered deployment",
+      "rationale": "Drop Zuplo MCP Server Handler dependency. Build meridian-mcp as standalone using official MCP TypeScript SDK. Two entry points: stdio (local) and http (remote). D06 scope narrowed: Zuplo is HTTP gateway only, MCP hosting is separate.",
+      "date": "2026-04-16",
+      "status": "active",
+      "related_issues": [
+        "MER-22",
+        "MER-60"
+      ],
+      "session_number": 11,
+      "canon": false
+    },
+    {
+      "id": "D73",
+      "summary": "/secrets/ gitignored directory + three-layer enforcement",
+      "rationale": "Directory-level gitignore catches future secret-adjacent artifacts. Three enforcement layers: .gitignore, pre-commit hook check-secrets.sh, GitHub custom secret-scanning pattern. Split docs: /secrets/SECRETS.md (gitignored, pointer registry) + docs/SECRETS_POLICY.md (committed, public-facing).",
+      "date": "2026-04-16",
+      "status": "active",
+      "related_issues": [
+        "MER-38",
+        "MER-62",
+        "MER-63"
+      ],
+      "session_number": 11,
+      "canon": false
+    },
+    {
+      "id": "D74",
+      "summary": "Emergency rotation procedures per credential class",
+      "rationale": "Break-glass procedures documented in /secrets/SECRETS.md. Specific procedures for Clerk PAT, Clerk machine secret, webhook HMAC, GATEWAY_SECRET, DATABASE_URL. Compromised identities retired not reused. Brief outages acceptable; continuing with compromised credentials is not.",
+      "date": "2026-04-16",
+      "status": "active",
+      "related_issues": [],
+      "session_number": 11,
+      "canon": false
     }
   ],
   "issues": [
@@ -616,6 +1124,618 @@
       "related_decisions": [],
       "summary": "gh CLI not available in WSL",
       "resolution": "Low priority. Git Bash workaround exists."
+    },
+    {
+      "id": "MER-20",
+      "summary": "5 low-severity Session 07 insights",
+      "description": "Five low-severity insights from Session 07 pending routing review.",
+      "status": "open",
+      "severity": "low",
+      "phase": null,
+      "session_opened": 7,
+      "session_resolved": null,
+      "related_decisions": [],
+      "resolution": null
+    },
+    {
+      "id": "MER-21",
+      "summary": "DATABASE.md maintenance burden; docs/OPERATIONS.md",
+      "description": "DATABASE.md maintenance burden growing. Need docs/OPERATIONS.md for runbooks, alert response, cold storage procedures.",
+      "status": "open",
+      "severity": "low",
+      "phase": null,
+      "session_opened": 7,
+      "session_resolved": null,
+      "related_decisions": [],
+      "resolution": null
+    },
+    {
+      "id": "MER-22",
+      "summary": "MCP Server Handler on Zuplo",
+      "description": "MCP Server Handler on Zuplo — original plan for MCP exposure via Zuplo gateway.",
+      "status": "resolved",
+      "severity": "medium",
+      "phase": null,
+      "session_opened": 7,
+      "session_resolved": 11,
+      "related_decisions": [
+        "D06",
+        "D72"
+      ],
+      "resolution": "Won't-do per D72. Architecturally redirected to meridian-mcp."
+    },
+    {
+      "id": "MER-23",
+      "summary": "Seed data stale (D33-D74, Sessions 07-11)",
+      "description": "Seed data does not include decisions D33-D74, sessions 07-11, or issue statuses from recon sessions.",
+      "status": "open",
+      "severity": "high",
+      "phase": null,
+      "session_opened": 10,
+      "session_resolved": null,
+      "related_decisions": [],
+      "resolution": null
+    },
+    {
+      "id": "MER-24",
+      "summary": "D29 vs reality - SSH configuration on WSL",
+      "description": "SSH from WSL (D29) not yet configured. HTTPS from Git Bash remains the workaround.",
+      "status": "open",
+      "severity": "high",
+      "phase": null,
+      "session_opened": 10,
+      "session_resolved": null,
+      "related_decisions": [
+        "D29"
+      ],
+      "resolution": null
+    },
+    {
+      "id": "MER-25",
+      "summary": "INS-001-006 routing review (Session 08 ledger)",
+      "description": "Session 08 insight ledger (6 insights, INS-001 through INS-006) pending routing review and action.",
+      "status": "open",
+      "severity": "medium",
+      "phase": null,
+      "session_opened": 10,
+      "session_resolved": null,
+      "related_decisions": [],
+      "resolution": null
+    },
+    {
+      "id": "MER-26",
+      "summary": "API live and unauthenticated - shared-secret hotfix",
+      "description": "Meridian API is live on Railway and accessible without any authentication. Shared-secret middleware hotfix required before any new data exposure.",
+      "status": "open",
+      "severity": "critical",
+      "phase": null,
+      "session_opened": 10,
+      "session_resolved": null,
+      "related_decisions": [
+        "D66"
+      ],
+      "resolution": null
+    },
+    {
+      "id": "MER-27",
+      "summary": "Railway direct URL bypasses Zuplo",
+      "description": "Railway direct URL accessible without going through Zuplo gateway. Direct Railway URL access is a security violation.",
+      "status": "open",
+      "severity": "critical",
+      "phase": null,
+      "session_opened": 10,
+      "session_resolved": null,
+      "related_decisions": [
+        "D06",
+        "D66"
+      ],
+      "resolution": null
+    },
+    {
+      "id": "MER-28",
+      "summary": "Resend domain verification for mydatasphere.dev",
+      "description": "Resend sending domain under mydatasphere.dev not yet verified. SPF/DKIM/DMARC records needed.",
+      "status": "open",
+      "severity": "medium",
+      "phase": null,
+      "session_opened": 10,
+      "session_resolved": null,
+      "related_decisions": [
+        "D41"
+      ],
+      "resolution": null
+    },
+    {
+      "id": "MER-29",
+      "summary": "Deep context skill update per D55",
+      "description": "Deep context skill file needs update to enforce D55 structured metadata header (YAML frontmatter) requirements.",
+      "status": "resolved",
+      "severity": "high",
+      "phase": null,
+      "session_opened": 10,
+      "session_resolved": 11,
+      "related_decisions": [
+        "D55",
+        "D58"
+      ],
+      "resolution": "Merged with D58; deep-context skill update scheduled Sprint 08.5 Track 1"
+    },
+    {
+      "id": "MER-30",
+      "summary": "Clerk Pro M2M availability verification",
+      "description": "Verify that Clerk Pro plan supports M2M token capabilities needed for D44 machine identity architecture.",
+      "status": "open",
+      "severity": "high",
+      "phase": null,
+      "session_opened": 10,
+      "session_resolved": null,
+      "related_decisions": [
+        "D44"
+      ],
+      "resolution": null
+    },
+    {
+      "id": "MER-31",
+      "summary": "Mac Mini provisioning checklist (urgency elevated by D65)",
+      "description": "Mac Mini needs SSH key, GPG key, Clerk M2M identity, and Claude Code setup. Urgency elevated by D65 branch protection (need emergency-recovery signing identity).",
+      "status": "open",
+      "severity": "medium",
+      "phase": null,
+      "session_opened": 10,
+      "session_resolved": null,
+      "related_decisions": [
+        "D42",
+        "D65"
+      ],
+      "resolution": null
+    },
+    {
+      "id": "MER-32",
+      "summary": "D11 supersession by D22 not reflected in seed",
+      "description": "D11 superseded by D22 but seed data may not accurately reflect the supersession chain.",
+      "status": "open",
+      "severity": "low",
+      "phase": null,
+      "session_opened": 10,
+      "session_resolved": null,
+      "related_decisions": [
+        "D11",
+        "D22"
+      ],
+      "resolution": null
+    },
+    {
+      "id": "MER-33",
+      "summary": "Migration 004 BEGIN/COMMIT/schema_migrations INSERT fix",
+      "description": "Migration 004 on disk is missing BEGIN/COMMIT transaction wrapper and schema_migrations INSERT statement.",
+      "status": "open",
+      "severity": "critical",
+      "phase": null,
+      "session_opened": 10,
+      "session_resolved": null,
+      "related_decisions": [
+        "D56"
+      ],
+      "resolution": null
+    },
+    {
+      "id": "MER-34",
+      "summary": "Migration 004 IF NOT EXISTS + D43 attribution per D59",
+      "description": "Migration 004 missing IF NOT EXISTS guards and D43 attribution columns (actor_identity_id FK) per D59 design.",
+      "status": "open",
+      "severity": "critical",
+      "phase": null,
+      "session_opened": 10,
+      "session_resolved": null,
+      "related_decisions": [
+        "D43",
+        "D59"
+      ],
+      "resolution": null
+    },
+    {
+      "id": "MER-35",
+      "summary": "Clerk JWT-template PAT validation spike vs Zuplo",
+      "description": "Validate that Clerk JWT template for human PAT (meridian-human-pat) works with Zuplo Clerk JWT Auth policy.",
+      "status": "open",
+      "severity": "critical",
+      "phase": null,
+      "session_opened": 10,
+      "session_resolved": null,
+      "related_decisions": [
+        "D40",
+        "D62"
+      ],
+      "resolution": null
+    },
+    {
+      "id": "MER-36",
+      "summary": "Clerk M2M token validation spike vs Zuplo",
+      "description": "Validate that Clerk M2M token (meridian-machine-m2m) works with Zuplo Clerk JWT Auth policy.",
+      "status": "open",
+      "severity": "critical",
+      "phase": null,
+      "session_opened": 10,
+      "session_resolved": null,
+      "related_decisions": [
+        "D44",
+        "D62"
+      ],
+      "resolution": null
+    },
+    {
+      "id": "MER-37",
+      "summary": "Fastify middleware ordering + rejection trace coverage",
+      "description": "Fastify middleware ordering needs design to ensure shared-secret, Clerk auth, and audit layers execute in correct sequence with rejection trace coverage.",
+      "status": "open",
+      "severity": "high",
+      "phase": null,
+      "session_opened": 10,
+      "session_resolved": null,
+      "related_decisions": [
+        "D66"
+      ],
+      "resolution": null
+    },
+    {
+      "id": "MER-38",
+      "summary": "/secrets/ infrastructure per D73 (gitignored + enforcement + docs)",
+      "description": "Scaffold /secrets/ directory, SECRETS.md pointer registry, docs/SECRETS_POLICY.md, and three-layer enforcement per D73.",
+      "status": "open",
+      "severity": "high",
+      "phase": null,
+      "session_opened": 10,
+      "session_resolved": null,
+      "related_decisions": [
+        "D73"
+      ],
+      "resolution": null
+    },
+    {
+      "id": "MER-39",
+      "summary": "Two Clerk JWT templates per D62",
+      "description": "Create two Clerk JWT templates (meridian-human-pat and meridian-machine-m2m) with independent signing keys per D62.",
+      "status": "open",
+      "severity": "high",
+      "phase": null,
+      "session_opened": 10,
+      "session_resolved": null,
+      "related_decisions": [
+        "D62"
+      ],
+      "resolution": null
+    },
+    {
+      "id": "MER-40",
+      "summary": ".env.example commit",
+      "description": ".env.example file documenting required environment variables not yet committed to repo.",
+      "status": "open",
+      "severity": "low",
+      "phase": null,
+      "session_opened": 10,
+      "session_resolved": null,
+      "related_decisions": [],
+      "resolution": null
+    },
+    {
+      "id": "MER-41",
+      "summary": "railway.toml commit",
+      "description": "railway.toml configuration file not yet committed to repo.",
+      "status": "open",
+      "severity": "low",
+      "phase": null,
+      "session_opened": 10,
+      "session_resolved": null,
+      "related_decisions": [],
+      "resolution": null
+    },
+    {
+      "id": "MER-42",
+      "summary": "@fastify/cors with strict allowlist",
+      "description": "CORS middleware with strict origin allowlist needed for API security.",
+      "status": "open",
+      "severity": "high",
+      "phase": null,
+      "session_opened": 10,
+      "session_resolved": null,
+      "related_decisions": [
+        "D66"
+      ],
+      "resolution": null
+    },
+    {
+      "id": "MER-43",
+      "summary": "/health body narrow + /v1/system endpoint per D64",
+      "description": "Narrow /health response body to prevent fingerprinting. Add /v1/system endpoint behind Clerk auth with rich diagnostic body per D64.",
+      "status": "open",
+      "severity": "medium",
+      "phase": null,
+      "session_opened": 10,
+      "session_resolved": null,
+      "related_decisions": [
+        "D64"
+      ],
+      "resolution": null
+    },
+    {
+      "id": "MER-44",
+      "summary": "Audit dead-letter path (audit-of-audit)",
+      "description": "Dead-letter path for audit events that fail to write. Audit-of-audit ensures audit failures are themselves observable.",
+      "status": "open",
+      "severity": "high",
+      "phase": null,
+      "session_opened": 10,
+      "session_resolved": null,
+      "related_decisions": [
+        "D52",
+        "D54"
+      ],
+      "resolution": null
+    },
+    {
+      "id": "MER-45",
+      "summary": "Zuplo rate-limit identity extractor verification",
+      "description": "Verify that Zuplo rate-limit policies can extract identity from Clerk JWT for per-identity rate limiting.",
+      "status": "open",
+      "severity": "high",
+      "phase": null,
+      "session_opened": 10,
+      "session_resolved": null,
+      "related_decisions": [
+        "D06",
+        "D43"
+      ],
+      "resolution": null
+    },
+    {
+      "id": "MER-46",
+      "summary": "Seed ON CONFLICT DO UPDATE per D69",
+      "description": "Update seed script to use ON CONFLICT DO UPDATE for mutable columns per D69.",
+      "status": "open",
+      "severity": "medium",
+      "phase": null,
+      "session_opened": 11,
+      "session_resolved": null,
+      "related_decisions": [
+        "D69"
+      ],
+      "resolution": null
+    },
+    {
+      "id": "MER-47",
+      "summary": "D48 observability-readiness criterion per D60",
+      "description": "observability_readiness table structure with permissive defaults for Sprint 08.5; real readiness rows populated in Sprint 10a when audit layer is operational.",
+      "status": "open",
+      "severity": "medium",
+      "phase": null,
+      "session_opened": 11,
+      "session_resolved": null,
+      "related_decisions": [
+        "D48",
+        "D60"
+      ],
+      "resolution": null
+    },
+    {
+      "id": "MER-48",
+      "summary": "D53 live-DB topology scope",
+      "description": "Ambiguity about whether D53 requires moving the live database off Railway to local storage.",
+      "status": "resolved",
+      "severity": "medium",
+      "phase": null,
+      "session_opened": 10,
+      "session_resolved": 11,
+      "related_decisions": [
+        "D53",
+        "D61"
+      ],
+      "resolution": "Resolved by D61. Railway operational + local sovereign satisfies canon without inversion."
+    },
+    {
+      "id": "MER-49",
+      "summary": "D54 agent_events to AGE graph ingest path",
+      "description": "Design and build ingest path from audit_events and agent_sessions JSONB columns into AGE graph per D54.",
+      "status": "open",
+      "severity": "medium",
+      "phase": null,
+      "session_opened": 11,
+      "session_resolved": null,
+      "related_decisions": [
+        "D54"
+      ],
+      "resolution": null
+    },
+    {
+      "id": "MER-50",
+      "summary": "D55 deep-context skill update",
+      "description": "Deep context skill update for D55 compliance.",
+      "status": "resolved",
+      "severity": "medium",
+      "phase": null,
+      "session_opened": 10,
+      "session_resolved": 11,
+      "related_decisions": [
+        "D55"
+      ],
+      "resolution": "Duplicate of MER-29; merged."
+    },
+    {
+      "id": "MER-51",
+      "summary": "Canon back-fill (D33-D74 + canon flag per D70)",
+      "description": "Back-fill seed data with decisions D33-D74 and canon boolean flag on all decisions per D70.",
+      "status": "open",
+      "severity": "medium",
+      "phase": null,
+      "session_opened": 11,
+      "session_resolved": null,
+      "related_decisions": [
+        "D70"
+      ],
+      "resolution": null
+    },
+    {
+      "id": "MER-52",
+      "summary": "Capability manifest endpoint /api/v1/capabilities",
+      "description": "Capability manifest endpoint for agent/tool discovery.",
+      "status": "open",
+      "severity": "medium",
+      "phase": null,
+      "session_opened": 11,
+      "session_resolved": null,
+      "related_decisions": [],
+      "resolution": null
+    },
+    {
+      "id": "MER-53",
+      "summary": "CI pipeline",
+      "description": "Continuous integration pipeline for automated testing and build verification.",
+      "status": "open",
+      "severity": "low",
+      "phase": null,
+      "session_opened": 11,
+      "session_resolved": null,
+      "related_decisions": [],
+      "resolution": null
+    },
+    {
+      "id": "MER-54",
+      "summary": "Insight ledger filename convention (_S##-)",
+      "description": "Standardize insight ledger filenames to include session number prefix.",
+      "status": "open",
+      "severity": "low",
+      "phase": null,
+      "session_opened": 11,
+      "session_resolved": null,
+      "related_decisions": [],
+      "resolution": null
+    },
+    {
+      "id": "MER-55",
+      "summary": "Identity bootstrapping documentation (in docs/SECRETS_POLICY.md)",
+      "description": "Document identity bootstrapping procedures in docs/SECRETS_POLICY.md.",
+      "status": "open",
+      "severity": "medium",
+      "phase": null,
+      "session_opened": 11,
+      "session_resolved": null,
+      "related_decisions": [
+        "D73"
+      ],
+      "resolution": null
+    },
+    {
+      "id": "MER-56",
+      "summary": "Railway private networking - if available, Layer A obsolete",
+      "description": "Investigate if Railway private networking is available. If so, the shared-secret Layer A becomes obsolete.",
+      "status": "open",
+      "severity": "high",
+      "phase": null,
+      "session_opened": 10,
+      "session_resolved": null,
+      "related_decisions": [
+        "D06"
+      ],
+      "resolution": null
+    },
+    {
+      "id": "MER-57",
+      "summary": "D06 scope-narrowing insight per D72",
+      "description": "Document D06 scope narrowing per D72 (Zuplo is HTTP gateway only, not MCP host).",
+      "status": "open",
+      "severity": "low",
+      "phase": null,
+      "session_opened": 11,
+      "session_resolved": null,
+      "related_decisions": [
+        "D06",
+        "D72"
+      ],
+      "resolution": null
+    },
+    {
+      "id": "MER-58",
+      "summary": "D48 retention behavior on session-promoted audit rows",
+      "description": "Design detail for D48 retention behavior when audit rows are promoted across session boundaries.",
+      "status": "open",
+      "severity": "low",
+      "phase": null,
+      "session_opened": 11,
+      "session_resolved": null,
+      "related_decisions": [
+        "D48"
+      ],
+      "resolution": null
+    },
+    {
+      "id": "MER-59",
+      "summary": "Webhook validation surface",
+      "description": "Determine webhook validation surface (Zuplo vs Cloudflare Workers).",
+      "status": "resolved",
+      "severity": "medium",
+      "phase": null,
+      "session_opened": 10,
+      "session_resolved": 11,
+      "related_decisions": [
+        "D67"
+      ],
+      "resolution": "Resolved by D67. Zuplo HMAC primary, CF Workers fallback."
+    },
+    {
+      "id": "MER-60",
+      "summary": "meridian-mcp repo scaffold + Variant A deployment per D72",
+      "description": "Scaffold meridian-mcp repository and deploy Variant A (local subprocess) on dev machines per D72.",
+      "status": "open",
+      "severity": "medium",
+      "phase": null,
+      "session_opened": 11,
+      "session_resolved": null,
+      "related_decisions": [
+        "D72"
+      ],
+      "resolution": null
+    },
+    {
+      "id": "MER-61",
+      "summary": "MCP Variant B (remote HTTP) activation",
+      "description": "MCP Variant B (remote HTTP service) deferred until concrete use case: first managed agent mission, mobile client, or external integration.",
+      "status": "deferred",
+      "severity": "medium",
+      "phase": null,
+      "session_opened": 11,
+      "session_resolved": null,
+      "related_decisions": [
+        "D68",
+        "D72"
+      ],
+      "resolution": null
+    },
+    {
+      "id": "MER-62",
+      "summary": "GitHub custom secret-scanning pattern per D73",
+      "description": "Configure GitHub custom secret-scanning pattern meridian-secrets-directory with Critical severity and push protection on both active repos.",
+      "status": "open",
+      "severity": "medium",
+      "phase": null,
+      "session_opened": 11,
+      "session_resolved": null,
+      "related_decisions": [
+        "D73"
+      ],
+      "resolution": null
+    },
+    {
+      "id": "MER-63",
+      "summary": "Pre-commit hook check-secrets.sh per D73",
+      "description": "Create pre-commit hook check-secrets.sh that rejects any staged file under secrets/ path per D73.",
+      "status": "open",
+      "severity": "medium",
+      "phase": null,
+      "session_opened": 11,
+      "session_resolved": null,
+      "related_decisions": [
+        "D73"
+      ],
+      "resolution": null
     }
   ],
   "legacy_issues": [
@@ -655,7 +1775,7 @@
   "sessions": [
     {
       "date": "2026-04-12",
-      "theme": "Architecture evaluation — CAG vs RAG vs GraphRAG, deep-context skill creation",
+      "theme": "Architecture evaluation - CAG vs RAG vs GraphRAG, deep-context skill creation",
       "decisions_made": [
         "D01",
         "D02",
@@ -676,7 +1796,7 @@
     },
     {
       "date": "2026-04-12",
-      "theme": "Architecture refinement — unified store, Zuplo integration, graph DB selection, project naming, repo creation",
+      "theme": "Architecture refinement - unified store, Zuplo integration, graph DB selection, project naming, repo creation",
       "decisions_made": [
         "D04",
         "D05",
@@ -696,7 +1816,7 @@
         "CAG-01",
         "CAG-04"
       ],
-      "summary": "Reframed from pick-one to unified architecture. Multi-backend + router model critiqued (7 weaknesses). Replaced with 'one store, many lenses' — single canonical knowledge graph with three retrieval lenses. PostgreSQL+AGE selected as sole database. Kuzu eliminated (Apple acquisition). Zuplo as API/MCP layer. Project named Meridian. Repo created.",
+      "summary": "Reframed from pick-one to unified architecture. Multi-backend + router model critiqued (7 weaknesses). Replaced with 'one store, many lenses' architecture. PostgreSQL+AGE selected as sole database. Kuzu eliminated (Apple acquisition). Zuplo as API/MCP layer. Project named Meridian. Repo created.",
       "session_number": 2,
       "artifacts_produced": [
         "Unified knowledge architecture diagram, GitHub repository (ckj9779/Meridian)"
@@ -721,7 +1841,7 @@
         "MER-02",
         "MER-05"
       ],
-      "summary": "Designed graph schema: 9 node types, 13 edge types, 4 domain vectors (Professional, Private, Spiritual, Romantic). Four-domain model established — Meridian is a personal knowledge graph, not just professional. Email corpus confirmed as .eml/.html pairs from M365 Graph API export. No pre-filter decision. Model-agnostic schema via JSON contract.",
+      "summary": "Designed graph schema: 9 node types, 13 edge types, 4 domain vectors. Email corpus confirmed as .eml/.html pairs from M365 Graph API export. No pre-filter decision. Model-agnostic schema via JSON contract.",
       "session_number": 3,
       "artifacts_produced": [
         "Graph schema v1 (docs/SCHEMA.md), extraction prompt v1.1 (docs/EXTRACTION.md), schema overview diagram"
@@ -729,7 +1849,7 @@
     },
     {
       "date": "2026-04-13",
-      "theme": "Extraction prompt validation against real email data, interface architecture — three-function conversational model",
+      "theme": "Extraction prompt validation against real email data, interface architecture - three-function conversational model",
       "decisions_made": [
         "D16",
         "D17",
@@ -751,7 +1871,7 @@
       "issues_resolved": [
         "MER-06"
       ],
-      "summary": "Tested extraction against 9 real emails spanning 5 source types and 3 domains. Established family graph (Joshua, Chloe, Marteba). Pivotal observation: extraction is proposal, not fact — human-in-the-loop is architectural (D24). Three-function interface designed: Conversational Triage, Insight Explorer, Execution Layer. Model selection moved to user preference (D22).",
+      "summary": "Tested extraction against 9 real emails spanning 5 source types and 3 domains. Pivotal observation: extraction is proposal, not fact (D24). Three-function interface designed. Model selection moved to user preference (D22).",
       "session_number": 4,
       "artifacts_produced": [
         "8 extraction validations, extraction prompt v1.2 change spec, interface architecture concept"
@@ -759,7 +1879,7 @@
     },
     {
       "date": "2026-04-14",
-      "theme": "Agentic intelligence architecture, System Architecture Document, licensing/IP framework, developer documentation ecosystem",
+      "theme": "Agentic intelligence architecture, System Architecture Document, licensing/IP framework",
       "decisions_made": [
         "D25"
       ],
@@ -774,15 +1894,15 @@
         "MER-10",
         "MER-11"
       ],
-      "summary": "Mapped full email ecosystem (M365, Gmail, iCloud, Microsoft Live). Intelligence gathering identified as primary value proposition (5-10 hrs/day manual effort). Six-layer architecture formalized with harness layer. Agents API as execution runtime. BSL 1.1 license selected. SAD produced (15 sections, ~35 pages). CLAUDE.md and modular docs ecosystem created. Phase 0-5 roadmap established. Meridian builds itself from Phase 0.",
+      "summary": "Mapped full email ecosystem. Intelligence gathering identified as primary value proposition. Six-layer architecture formalized. BSL 1.1 license selected. SAD produced. CLAUDE.md and modular docs ecosystem created.",
       "session_number": 5,
       "artifacts_produced": [
-        "Intelligence source manager SPA, interactive system architecture diagram, SAD v1.0 (.docx), CLAUDE.md, 4 developer reference docs, 2 renamed schema/extraction docs, Claude Code Git setup prompt"
+        "Intelligence source manager SPA, system architecture diagram, SAD v1.0, CLAUDE.md, 4 developer reference docs"
       ]
     },
     {
       "date": "2026-04-14",
-      "theme": "Insight protocol design, CLAUDE.md rewrite, Git/GitHub Phase 0 setup via Claude Code, routing action application",
+      "theme": "Insight protocol design, CLAUDE.md rewrite, Git/GitHub Phase 0 setup via Claude Code",
       "decisions_made": [
         "D26",
         "D27",
@@ -796,10 +1916,173 @@
       "issues_resolved": [
         "MER-14"
       ],
-      "summary": "Designed insight protocol — structured capture of Claude Code observations routed to specific docs. Eight insight types with routing targets. CLAUDE.md rewritten from 143 to ~280 lines. Two Claude Code prompts executed: git-setup (10 insights) and routing-actions (4 insights). First two signed commits verified on GitHub. GPG key rsa4096/799AD4A789D27DA8 generated. WSL/Git Bash dual environment discovered and documented.",
+      "summary": "Designed insight protocol with eight insight types and routing targets. CLAUDE.md rewritten. Two Claude Code prompts executed. First two signed commits verified on GitHub. GPG key generated.",
       "session_number": 6,
       "artifacts_produced": [
-        "CLAUDE.md full rewrite with insight protocol, 2 Claude Code prompts, 2 signed commits (cadddfc, 2086bc9), 2 insight ledgers, 14 insights captured, .gitattributes, LICENSE, COPYRIGHT, README.md, .gitignore, 6 header templates, pre-commit hook"
+        "CLAUDE.md full rewrite, 2 Claude Code prompts, 2 signed commits, 2 insight ledgers, 14 insights captured"
+      ]
+    },
+    {
+      "date": "2026-04-15",
+      "theme": "Phase 0 infrastructure - API framework, package manager, streaming, system context, tech inventory",
+      "decisions_made": [
+        "D30",
+        "D31",
+        "D32",
+        "D33",
+        "D34"
+      ],
+      "issues_opened": [
+        "MER-20",
+        "MER-21"
+      ],
+      "issues_resolved": [],
+      "summary": "Selected npm as package manager, Fastify as API framework, SSE for streaming. Reshaped system_context as versioned document. Split tech inventory from tech event log with new stack_components table.",
+      "session_number": 7,
+      "artifacts_produced": [
+        "Phase 0 API scaffold, migration 003, seed data, DATABASE.md updates"
+      ]
+    },
+    {
+      "date": "2026-04-15",
+      "theme": "Phase 0 completion - execution runtime, DNS, domain, gateway repo",
+      "decisions_made": [
+        "D35",
+        "D36",
+        "D37",
+        "D38"
+      ],
+      "issues_opened": [
+        "MER-22"
+      ],
+      "issues_resolved": [],
+      "summary": "Adopted dual execution runtime (Managed Agents primary, Routines as progression). Selected Cloudflare as DNS registrar. Created separate meridian-gateway repo for Zuplo. Established mydatasphere.dev as project domain.",
+      "session_number": 8,
+      "artifacts_produced": [
+        "meridian-gateway repo, Zuplo proxy routes, Cloudflare DNS configuration"
+      ]
+    },
+    {
+      "date": "2026-04-16",
+      "theme": "Security, observability, canon governance - Clerk, attribution, observability cascade, data sovereignty",
+      "decisions_made": [
+        "D39",
+        "D40",
+        "D41",
+        "D42",
+        "D43",
+        "D44",
+        "D45",
+        "D46",
+        "D47",
+        "D48",
+        "D49",
+        "D50",
+        "D51",
+        "D52",
+        "D53",
+        "D54",
+        "D55"
+      ],
+      "issues_opened": [],
+      "issues_resolved": [],
+      "summary": "Established 17 decisions covering security architecture, observability, and canon governance. Five principles elevated to cross-project canon (D43, D48, D53, D54, D55). Clerk application, PAT/M2M identity architecture, alerting, audit design, and data sovereignty all locked.",
+      "session_number": 9,
+      "artifacts_produced": [
+        "Master CLAUDE.md v1.0, canon governance protocol, 5 canon principles"
+      ]
+    },
+    {
+      "date": "2026-04-16",
+      "theme": "Sprint plan diagnostic recon - 56 insights, 26 candidate issues",
+      "decisions_made": [],
+      "issues_opened": [
+        "MER-23",
+        "MER-24",
+        "MER-25",
+        "MER-26",
+        "MER-27",
+        "MER-28",
+        "MER-29",
+        "MER-30",
+        "MER-31",
+        "MER-32"
+      ],
+      "issues_resolved": [],
+      "summary": "Diagnostic recon session. No decisions locked. 56 insights captured, 26 candidate issues identified. Findings routed to Session 11 for decision lockdown.",
+      "session_number": 10,
+      "artifacts_produced": [
+        "56 insights, 26 candidate issues, recon report"
+      ]
+    },
+    {
+      "date": "2026-04-16",
+      "theme": "Decision lockdown - 18 decisions (D56-D74), D66 canon elevation",
+      "decisions_made": [
+        "D56",
+        "D57",
+        "D58",
+        "D59",
+        "D60",
+        "D61",
+        "D62",
+        "D63",
+        "D64",
+        "D65",
+        "D66",
+        "D67",
+        "D68",
+        "D69",
+        "D70",
+        "D71",
+        "D72",
+        "D73",
+        "D74"
+      ],
+      "issues_opened": [
+        "MER-33",
+        "MER-34",
+        "MER-35",
+        "MER-36",
+        "MER-37",
+        "MER-38",
+        "MER-39",
+        "MER-40",
+        "MER-41",
+        "MER-42",
+        "MER-43",
+        "MER-44",
+        "MER-45",
+        "MER-46",
+        "MER-47",
+        "MER-48",
+        "MER-49",
+        "MER-50",
+        "MER-51",
+        "MER-52",
+        "MER-53",
+        "MER-54",
+        "MER-55",
+        "MER-56",
+        "MER-57",
+        "MER-58",
+        "MER-59",
+        "MER-60",
+        "MER-61",
+        "MER-62",
+        "MER-63"
+      ],
+      "issues_resolved": [
+        "MER-22",
+        "MER-29",
+        "MER-48",
+        "MER-50",
+        "MER-59"
+      ],
+      "summary": "Locked 18 decisions (D56-D74). D66 (Universal API Authentication) elevated to seventh canon principle. Master CLAUDE.md updated to v1.1. Sprint 08.5 two-track structure established. Migration 004 reconciliation designed.",
+      "session_number": 11,
+      "artifacts_produced": [
+        "Master CLAUDE.md v1.1, project CLAUDE.md v1.1, D66 canon principle, 18 locked decisions"
       ]
     }
   ],
@@ -814,11 +2097,11 @@
     },
     {
       "key": "phase_description",
-      "value": "Can remember — PostgreSQL + API + Zuplo MCP"
+      "value": "Can remember - PostgreSQL + API + Zuplo MCP"
     },
     {
       "key": "architecture",
-      "value": "One store, many lenses — unified canonical knowledge graph with three retrieval lenses"
+      "value": "One store, many lenses - unified canonical knowledge graph with three retrieval lenses"
     },
     {
       "key": "canonical_store",
@@ -834,7 +2117,7 @@
     },
     {
       "key": "api_gateway",
-      "value": "Zuplo — auth, rate limiting, semantic caching, MCP exposure"
+      "value": "Zuplo - auth, rate limiting, semantic caching, MCP exposure"
     },
     {
       "key": "infrastructure_host",
@@ -850,7 +2133,7 @@
     },
     {
       "key": "execution_runtime",
-      "value": "Anthropic Agents API (unconfirmed — MER-15)"
+      "value": "Anthropic Agents API (unconfirmed - MER-15)"
     },
     {
       "key": "license",
@@ -914,11 +2197,11 @@
     },
     {
       "key": "value_proposition",
-      "value": "Intelligence multiplier — graph-scored briefings from automated source scanning. Compresses 5-10 hrs/day manual intelligence gathering to 30-60 min reviewed briefings."
+      "value": "Intelligence multiplier - graph-scored briefings from automated source scanning. Compresses 5-10 hrs/day manual intelligence gathering to 30-60 min reviewed briefings."
     },
     {
       "key": "commits_on_main",
-      "value": "3 — e495e6b (initial), cadddfc (Phase 0 foundation), 2086bc9 (routing actions)"
+      "value": "3 - e495e6b (initial), cadddfc (Phase 0 foundation), 2086bc9 (routing actions)"
     },
     {
       "key": "email_corpus_m365",
