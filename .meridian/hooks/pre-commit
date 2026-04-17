@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+# Copyright (c) 2026 ckj9779. Licensed under BSL 1.1. See LICENSE.
+# Meridian pre-commit dispatcher.
+# Runs all pre-commit checks in fail-fast order.
+# Activated via: git config core.hooksPath .meridian/hooks
+#
+# set -e ensures any check that exits non-zero aborts the commit.
+
+set -e
+
+HOOKS_DIR="$(cd "$(dirname "$0")" && pwd)"
+
+# 1. Secrets gate (D73, MER-63) — fail-fast, blocks before any other check.
+"$HOOKS_DIR/check-secrets.sh"
+
+# 2. Copyright headers (D25) — warn or block depending on MERIDIAN_ENFORCE_HEADERS.
+"$HOOKS_DIR/check-headers.sh"

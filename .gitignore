@@ -63,4 +63,8 @@ temp/
 *.key
 *.cert
 *.p12
+
+# D73 — Secrets directory. Gitignored. Registry in secrets/SECRETS.md (owner-only).
+# Policy: docs/SECRETS_POLICY.md (committed). Enforcement: .gitignore (here) +
+# .meridian/hooks/check-secrets.sh + GitHub secret-scanning pattern (MER-62).
 secrets/
