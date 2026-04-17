@@ -303,6 +303,25 @@ The `.gitignore` excludes:
 
 **Never add to .gitignore bypass:** email archives, personal corpus files, API keys, database credentials, or any file containing PII. If you're unsure, don't commit it.
 
+## Insight Ledger Convention
+
+Insight ledgers live in `.meridian/insights/` and capture observations, findings,
+and routing actions during Claude Code sessions. See CLAUDE.md Insight Protocol
+for the full taxonomy and routing discipline.
+
+**Insight ledger filename convention (from 2026-04-16 forward):**
+
+`YYYY-MM-DD_S##-theme.md` where:
+- `YYYY-MM-DD` is the date the ledger is opened.
+- `S##` is the two-digit session number (project session, not Claude Code execution number).
+- `theme` is a short kebab-case label (1–4 words) describing the sprint or task.
+
+Example: `2026-04-16_S12-sprint-08.5-track-1.md`.
+
+Rationale (MER-54): prior convention `YYYY-MM-DD_theme.md` sorted by date only. The `S##`
+segment preserves chronological sort while surfacing session membership in directory listings.
+Existing ledgers (pre-2026-04-16) are not retroactively renamed — forward-only scope.
+
 ## Tagging and Releases
 
 Version tags follow semantic versioning and are GPG-signed:
