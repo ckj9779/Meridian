@@ -66,21 +66,25 @@ and **must not** be used for signed commits — the key does not exist there.
 All `git commit`, `git tag`, and `git push` operations that require signing
 must run from a WSL terminal.
 
-### GPG agent caching
+### GPG-agent cache TTL (StarshipOne WSL)
 
-To avoid repeated passphrase prompts during development sessions, configure
-`~/.gnupg/gpg-agent.conf`:
+`~/.gnupg/gpg-agent.conf` sets `default-cache-ttl 7200` (2 hours) and
+`max-cache-ttl 28800` (8 hours). This supports the "warmup" pattern:
+an interactive terminal primes the cache, then subsequent Claude Code
+commits within the TTL window sign without reprompting.
 
 ```
 default-cache-ttl 7200
-max-cache-ttl 14400
+max-cache-ttl 28800
 ```
 
-Reload after changes: `gpgconf --kill gpg-agent`
+Reload after changes: `gpgconf --kill gpg-agent && gpgconf --launch gpg-agent`
+
+The Mac Mini provisioning checklist (MER-31) should apply the same config.
 
 **Agent warmup:** Before a batch of commits (especially when commits will be
 issued by tools or scripts that lack a TTY), run once in an interactive
-terminal:
+WSL terminal:
 
 ```bash
 echo "test" | gpg --clearsign > /dev/null
@@ -88,6 +92,23 @@ echo "test" | gpg --clearsign > /dev/null
 
 This primes the passphrase cache for the session. Without it, non-TTY
 commit attempts fail with `Inappropriate ioctl for device`.
+
+### Claude Code GPG bridge (Git Bash → WSL)
+
+Claude Code runs in Git Bash on Windows, not directly in WSL. The GPG
+secret key lives only in WSL's keyring. A bridge script at
+`.meridian/gpg-wsl-bridge.sh` delegates signing to `wsl.exe gpg`,
+translating file paths between Git Bash and WSL as needed.
+
+Local git config (per-clone, not committed):
+```bash
+git config --local gpg.program ".meridian/gpg-wsl-bridge.sh"
+git config --local user.signingkey 799AD4A789D27DA8
+git config --local commit.gpgsign true
+```
+
+This config must be set once per fresh clone when working from Git Bash.
+When working directly from WSL, `gpg.program = gpg` is sufficient.
 
 ## Pushing — SSH from WSL (D29)
 
