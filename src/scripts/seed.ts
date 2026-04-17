@@ -25,17 +25,21 @@ const SEED_FILE = join(
  * `model_preferences`. The `system_context` and `stack_components` tables are
  * seeded separately by `src/scripts/seed-002.ts` (see D33, D34).
  *
- * After migration 003 the seed JSON vocabulary matches the DDL columns
- * directly (no adapter rewrites needed); defensive `??` fallbacks remain so
- * the script still works against unmodified seed JSON for bootstrap purposes.
+ * ## Modes
  *
- * ## --reseed flag
+ * Default: `ON CONFLICT DO UPDATE` on mutable columns (D69). Immutable
+ * columns (PK, dates, origin-session) are preserved; mutable columns
+ * (summary, rationale, status, severity, etc.) are updated to match
+ * the seed JSON. This makes re-seeding after decision/issue updates
+ * idempotent without requiring --reseed truncation.
  *
- * Default mode: `ON CONFLICT DO NOTHING` inserts — safe reruns.
- * Reseed mode: truncate the four data tables managed by this script, then
- * reload. Invoked via `npx tsx src/scripts/seed.ts --reseed` or `RESEED=1`.
+ * --reseed / RESEED=1: truncate the four managed tables then reload.
  * Only the tables this script owns are truncated — `system_context` and
  * `stack_components` are untouched.
+ *
+ * --dry-run / DRY_RUN=1: run all operations inside a transaction that
+ * is rolled back at the end. Prints per-row INSERT vs UPDATE actions
+ * and totals. No data is modified.
  */
 
 interface SeedShape {
@@ -87,11 +91,17 @@ function isReseedRequested(): boolean {
   return process.argv.includes('--reseed');
 }
 
+function isDryRunRequested(): boolean {
+  if (process.env.DRY_RUN === '1') return true;
+  return process.argv.includes('--dry-run');
+}
+
+interface SeedResult {
+  inserted: number;
+  updated: number;
+}
+
 async function truncateManaged(): Promise<void> {
-  // TRUNCATE ... RESTART IDENTITY CASCADE — safe because no FKs target these
-  // tables in Phase 0, but CASCADE is cheap insurance against future
-  // additions. RESTART IDENTITY is a no-op for decisions/issues (varchar
-  // PKs) but matters if any future table on this list uses serial.
   const list = MANAGED_TABLES.join(', ');
   // eslint-disable-next-line no-console
   console.log(`Reseed: TRUNCATE ${list} RESTART IDENTITY CASCADE`);
@@ -99,180 +109,235 @@ async function truncateManaged(): Promise<void> {
 }
 
 // ---- decisions ------------------------------------------------------------
-// JSON (after migration 003): {id, session_number, status, superseded_by,
-//   summary, rationale, date, related_issues}
-// DB: {id, session_number, status, superseded_by, summary, rationale,
-//   components_affected, layers_affected, decided_at, related_issues}
-async function seedDecisions(rows: unknown[]): Promise<number> {
-  let inserted = 0;
-  await pool.query('BEGIN');
-  try {
-    for (const raw of rows) {
-      const r = asRow(raw);
-      if (!r) continue;
-      const status = typeof r.status === 'string' ? r.status : 'pending_validation';
-      const decidedAt = r.decided_at ?? r.date ?? null;
-      const result = await pool.query(
-        `INSERT INTO decisions (
-           id, session_number, status, superseded_by, summary, rationale,
-           components_affected, layers_affected, decided_at, related_issues
-         )
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
-         ON CONFLICT (id) DO NOTHING`,
-        [
-          r.id,
-          r.session_number ?? r.session,
-          status,
-          r.superseded_by ?? null,
-          r.summary,
-          r.rationale,
-          r.components_affected ?? null,
-          r.layers_affected ?? null,
-          decidedAt,
-          r.related_issues ?? null,
-        ],
-      );
-      inserted += result.rowCount ?? 0;
+// D69: ON CONFLICT (id) DO UPDATE mutable columns.
+// Immutable: id, session_number, decided_at
+// Mutable: status, superseded_by, summary, rationale, components_affected,
+//   layers_affected, related_issues, canon
+const DECISIONS_UPSERT = `
+  INSERT INTO decisions (
+    id, session_number, status, superseded_by, summary, rationale,
+    components_affected, layers_affected, decided_at, related_issues, canon
+  )
+  VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+  ON CONFLICT (id) DO UPDATE SET
+    status = EXCLUDED.status,
+    superseded_by = EXCLUDED.superseded_by,
+    summary = EXCLUDED.summary,
+    rationale = EXCLUDED.rationale,
+    components_affected = EXCLUDED.components_affected,
+    layers_affected = EXCLUDED.layers_affected,
+    related_issues = EXCLUDED.related_issues,
+    canon = EXCLUDED.canon
+  RETURNING (xmax = 0) AS was_insert
+`;
+
+async function seedDecisions(rows: unknown[], dryRun: boolean): Promise<SeedResult> {
+  const result: SeedResult = { inserted: 0, updated: 0 };
+  for (const raw of rows) {
+    const r = asRow(raw);
+    if (!r) continue;
+    const status = typeof r.status === 'string' ? r.status : 'pending_validation';
+    const decidedAt = r.decided_at ?? r.date ?? null;
+    const canon = typeof r.canon === 'boolean' ? r.canon : false;
+    const res = await pool.query(DECISIONS_UPSERT, [
+      r.id,
+      r.session_number ?? r.session,
+      status,
+      r.superseded_by ?? null,
+      r.summary,
+      r.rationale,
+      r.components_affected ?? null,
+      r.layers_affected ?? null,
+      decidedAt,
+      r.related_issues ?? null,
+      canon,
+    ]);
+    const wasInsert = res.rows[0]?.was_insert;
+    if (wasInsert) {
+      result.inserted++;
+      if (dryRun) {
+        // eslint-disable-next-line no-console
+        console.log(`[DRY-RUN] decisions: would INSERT ${r.id} (${r.summary})`);
+      }
+    } else {
+      result.updated++;
+      if (dryRun) {
+        // eslint-disable-next-line no-console
+        console.log(`[DRY-RUN] decisions: would UPDATE ${r.id}`);
+      }
     }
-    await pool.query('COMMIT');
-  } catch (err) {
-    await pool.query('ROLLBACK');
-    throw err;
   }
-  return inserted;
+  return result;
 }
 
 // ---- issues ---------------------------------------------------------------
-// JSON (after migration 003): {id, summary, description, status, severity,
-//   phase, session_opened, session_resolved, related_decisions, resolution}
-// DB: adds description, phase, related_decisions columns from migration 003.
-async function seedIssues(rows: unknown[]): Promise<number> {
-  let inserted = 0;
-  await pool.query('BEGIN');
-  try {
-    for (const raw of rows) {
-      const r = asRow(raw);
-      if (!r) continue;
-      // Defensive: tolerate pre-migration-003 JSON with `title`/`notes`.
-      const summary =
-        (typeof r.summary === 'string' ? r.summary : null) ??
-        (typeof r.title === 'string' ? r.title : null) ??
-        '(no summary)';
-      const resolution =
-        (typeof r.resolution === 'string' ? r.resolution : null) ??
-        (typeof r.notes === 'string' ? r.notes : null);
-      const description = typeof r.description === 'string' ? r.description : null;
-      const result = await pool.query(
-        `INSERT INTO issues (
-           id, session_opened, session_resolved, status, severity, component,
-           summary, resolution, blocked_by, blocks,
-           description, phase, related_decisions
-         )
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
-         ON CONFLICT (id) DO NOTHING`,
-        [
-          r.id,
-          r.session_opened,
-          r.session_resolved ?? null,
-          r.status,
-          normalizeSeverity(r.severity),
-          r.component ?? null,
-          summary,
-          resolution,
-          r.blocked_by ?? null,
-          r.blocks ?? null,
-          description,
-          r.phase ?? null,
-          r.related_decisions ?? null,
-        ],
-      );
-      inserted += result.rowCount ?? 0;
+// D69: ON CONFLICT (id) DO UPDATE mutable columns.
+// Immutable: id, session_opened
+// Mutable: summary, description, status, severity, phase, related_decisions,
+//   resolution, component, session_resolved, blocked_by, blocks
+const ISSUES_UPSERT = `
+  INSERT INTO issues (
+    id, session_opened, session_resolved, status, severity, component,
+    summary, resolution, blocked_by, blocks,
+    description, phase, related_decisions
+  )
+  VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+  ON CONFLICT (id) DO UPDATE SET
+    session_resolved = EXCLUDED.session_resolved,
+    status = EXCLUDED.status,
+    severity = EXCLUDED.severity,
+    component = EXCLUDED.component,
+    summary = EXCLUDED.summary,
+    resolution = EXCLUDED.resolution,
+    blocked_by = EXCLUDED.blocked_by,
+    blocks = EXCLUDED.blocks,
+    description = EXCLUDED.description,
+    phase = EXCLUDED.phase,
+    related_decisions = EXCLUDED.related_decisions
+  RETURNING (xmax = 0) AS was_insert
+`;
+
+async function seedIssues(rows: unknown[], dryRun: boolean): Promise<SeedResult> {
+  const result: SeedResult = { inserted: 0, updated: 0 };
+  for (const raw of rows) {
+    const r = asRow(raw);
+    if (!r) continue;
+    const summary =
+      (typeof r.summary === 'string' ? r.summary : null) ??
+      (typeof r.title === 'string' ? r.title : null) ??
+      '(no summary)';
+    const resolution =
+      (typeof r.resolution === 'string' ? r.resolution : null) ??
+      (typeof r.notes === 'string' ? r.notes : null);
+    const description = typeof r.description === 'string' ? r.description : null;
+    const res = await pool.query(ISSUES_UPSERT, [
+      r.id,
+      r.session_opened,
+      r.session_resolved ?? null,
+      r.status,
+      normalizeSeverity(r.severity),
+      r.component ?? null,
+      summary,
+      resolution,
+      r.blocked_by ?? null,
+      r.blocks ?? null,
+      description,
+      r.phase ?? null,
+      r.related_decisions ?? null,
+    ]);
+    const wasInsert = res.rows[0]?.was_insert;
+    if (wasInsert) {
+      result.inserted++;
+      if (dryRun) {
+        // eslint-disable-next-line no-console
+        console.log(`[DRY-RUN] issues: would INSERT ${r.id} (${summary})`);
+      }
+    } else {
+      result.updated++;
+      if (dryRun) {
+        // eslint-disable-next-line no-console
+        console.log(`[DRY-RUN] issues: would UPDATE ${r.id}`);
+      }
     }
-    await pool.query('COMMIT');
-  } catch (err) {
-    await pool.query('ROLLBACK');
-    throw err;
   }
-  return inserted;
+  return result;
 }
 
 // ---- sessions -------------------------------------------------------------
-// JSON (after migration 003): {session_number, date, theme, decisions_made,
-//   issues_opened, issues_resolved, artifacts_produced, summary}
-// DB: adds `summary` column from migration 003.
-async function seedSessions(rows: unknown[]): Promise<number> {
-  let inserted = 0;
-  await pool.query('BEGIN');
-  try {
-    for (const raw of rows) {
-      const r = asRow(raw);
-      if (!r) continue;
-      // Defensive fallback for pre-migration-003 shape.
-      const artifactsRaw = r.artifacts_produced ?? r.key_deliverables ?? null;
-      const artifacts =
-        Array.isArray(artifactsRaw)
-          ? artifactsRaw
-          : typeof artifactsRaw === 'string'
-            ? [artifactsRaw]
-            : null;
-      const result = await pool.query(
-        `INSERT INTO sessions (
-           session_number, date, theme, decisions_made, issues_resolved,
-           issues_opened, artifacts_produced, deep_context_ref, summary
-         )
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-         ON CONFLICT (session_number) DO NOTHING`,
-        [
-          r.session_number ?? r.number,
-          r.date,
-          r.theme,
-          r.decisions_made ?? null,
-          r.issues_resolved ?? null,
-          r.issues_opened ?? null,
-          artifacts,
-          r.deep_context_ref ?? null,
-          typeof r.summary === 'string' ? r.summary : null,
-        ],
-      );
-      inserted += result.rowCount ?? 0;
+// D69: ON CONFLICT (session_number) DO UPDATE mutable columns.
+// Immutable: session_number, date, theme
+// Mutable: summary, decisions_made, issues_resolved, issues_opened,
+//   artifacts_produced, deep_context_ref
+const SESSIONS_UPSERT = `
+  INSERT INTO sessions (
+    session_number, date, theme, decisions_made, issues_resolved,
+    issues_opened, artifacts_produced, deep_context_ref, summary
+  )
+  VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+  ON CONFLICT (session_number) DO UPDATE SET
+    summary = EXCLUDED.summary,
+    decisions_made = EXCLUDED.decisions_made,
+    issues_resolved = EXCLUDED.issues_resolved,
+    issues_opened = EXCLUDED.issues_opened,
+    artifacts_produced = EXCLUDED.artifacts_produced,
+    deep_context_ref = EXCLUDED.deep_context_ref
+  RETURNING (xmax = 0) AS was_insert
+`;
+
+async function seedSessions(rows: unknown[], dryRun: boolean): Promise<SeedResult> {
+  const result: SeedResult = { inserted: 0, updated: 0 };
+  for (const raw of rows) {
+    const r = asRow(raw);
+    if (!r) continue;
+    const artifactsRaw = r.artifacts_produced ?? r.key_deliverables ?? null;
+    const artifacts =
+      Array.isArray(artifactsRaw)
+        ? artifactsRaw
+        : typeof artifactsRaw === 'string'
+          ? [artifactsRaw]
+          : null;
+    const res = await pool.query(SESSIONS_UPSERT, [
+      r.session_number ?? r.number,
+      r.date,
+      r.theme,
+      r.decisions_made ?? null,
+      r.issues_resolved ?? null,
+      r.issues_opened ?? null,
+      artifacts,
+      r.deep_context_ref ?? null,
+      typeof r.summary === 'string' ? r.summary : null,
+    ]);
+    const wasInsert = res.rows[0]?.was_insert;
+    if (wasInsert) {
+      result.inserted++;
+      if (dryRun) {
+        // eslint-disable-next-line no-console
+        console.log(`[DRY-RUN] sessions: would INSERT S${r.session_number ?? r.number} (${r.theme})`);
+      }
+    } else {
+      result.updated++;
+      if (dryRun) {
+        // eslint-disable-next-line no-console
+        console.log(`[DRY-RUN] sessions: would UPDATE S${r.session_number ?? r.number}`);
+      }
     }
-    await pool.query('COMMIT');
-  } catch (err) {
-    await pool.query('ROLLBACK');
-    throw err;
   }
-  return inserted;
+  return result;
 }
 
 // ---- model_preferences ----------------------------------------------------
-// JSON (after migration 003): {task_type, provider, model_id, is_default, notes}
-// DB: {task_type, provider, model_id, is_default}
-async function seedModelPreferences(rows: unknown[]): Promise<number> {
-  let inserted = 0;
-  await pool.query('BEGIN');
-  try {
-    for (const raw of rows) {
-      const r = asRow(raw);
-      if (!r) continue;
-      const result = await pool.query(
-        `INSERT INTO model_preferences (task_type, provider, model_id, is_default)
-         VALUES ($1, $2, $3, $4)
-         ON CONFLICT DO NOTHING`,
-        [
-          r.task_type ?? r.task,
-          r.provider,
-          r.model_id ?? r.model,
-          r.is_default ?? true,
-        ],
-      );
-      inserted += result.rowCount ?? 0;
+// Note: model_preferences has only a partial unique index
+// (task_type WHERE is_default = true), not a full UNIQUE constraint on
+// task_type. ON CONFLICT DO UPDATE cannot target partial indexes, so this
+// table stays ON CONFLICT DO NOTHING. D69 scope note: behavior-preserving
+// for this table; revisit if a full UNIQUE constraint is added.
+async function seedModelPreferences(rows: unknown[], dryRun: boolean): Promise<SeedResult> {
+  const result: SeedResult = { inserted: 0, updated: 0 };
+  for (const raw of rows) {
+    const r = asRow(raw);
+    if (!r) continue;
+    const res = await pool.query(
+      `INSERT INTO model_preferences (task_type, provider, model_id, is_default)
+       VALUES ($1, $2, $3, $4)
+       ON CONFLICT DO NOTHING
+       RETURNING (xmax = 0) AS was_insert`,
+      [
+        r.task_type ?? r.task,
+        r.provider,
+        r.model_id ?? r.model,
+        r.is_default ?? true,
+      ],
+    );
+    if (res.rowCount && res.rowCount > 0) {
+      result.inserted++;
+      if (dryRun) {
+        // eslint-disable-next-line no-console
+        console.log(`[DRY-RUN] model_preferences: would INSERT ${r.task_type ?? r.task}`);
+      }
     }
-    await pool.query('COMMIT');
-  } catch (err) {
-    await pool.query('ROLLBACK');
-    throw err;
+    // ON CONFLICT DO NOTHING returns 0 rows on conflict — no update count.
   }
-  return inserted;
+  return result;
 }
 
 // system_context and tech_watch are NOT seeded by this script.
@@ -282,7 +347,21 @@ async function seedModelPreferences(rows: unknown[]): Promise<number> {
 
 async function main(): Promise<void> {
   const reseed = isReseedRequested();
-  if (reseed) {
+  const dryRun = isDryRunRequested();
+
+  if (dryRun && reseed) {
+    // eslint-disable-next-line no-console
+    console.log('[DRY-RUN] --reseed and --dry-run both set. Dry-run takes precedence — no truncation.');
+  }
+
+  // Dry-run wraps everything in a single transaction that is rolled back.
+  if (dryRun) {
+    await pool.query('BEGIN');
+    // eslint-disable-next-line no-console
+    console.log('[DRY-RUN] Transaction opened — all operations will be rolled back.\n');
+  }
+
+  if (reseed && !dryRun) {
     await truncateManaged();
   }
 
@@ -294,19 +373,30 @@ async function main(): Promise<void> {
   const issues = [...(seed.issues ?? []), ...(seed.legacy_issues ?? [])];
 
   const counts = {
-    decisions: await seedDecisions(decisions),
-    issues: await seedIssues(issues),
-    sessions: await seedSessions(seed.sessions ?? []),
-    model_preferences: await seedModelPreferences(seed.model_preferences ?? []),
-    system_context: 0, // seeded by seed-002.ts (D33)
-    tech_watch: 0, // reserved for Phase 1 monitoring agent (D34)
+    decisions: await seedDecisions(decisions, dryRun),
+    issues: await seedIssues(issues, dryRun),
+    sessions: await seedSessions(seed.sessions ?? [], dryRun),
+    model_preferences: await seedModelPreferences(seed.model_preferences ?? [], dryRun),
   };
 
-  // eslint-disable-next-line no-console
-  console.log(`Seed complete${reseed ? ' (after reseed truncate)' : ''}. Rows inserted:`);
-  for (const [table, count] of Object.entries(counts)) {
+  if (dryRun) {
     // eslint-disable-next-line no-console
-    console.log(`  ${table}: ${count}`);
+    console.log('\n--- Dry-run summary ---');
+    for (const [table, { inserted, updated }] of Object.entries(counts)) {
+      // eslint-disable-next-line no-console
+      console.log(`[DRY-RUN] ${table}: ${inserted} to insert, ${updated} to update`);
+    }
+    await pool.query('ROLLBACK');
+    // eslint-disable-next-line no-console
+    console.log('[DRY-RUN] Transaction rolled back — no changes applied.');
+  } else {
+    const label = reseed ? ' (after reseed truncate)' : '';
+    // eslint-disable-next-line no-console
+    console.log(`Seed complete${label}. Row operations:`);
+    for (const [table, { inserted, updated }] of Object.entries(counts)) {
+      // eslint-disable-next-line no-console
+      console.log(`  ${table}: ${inserted} inserted, ${updated} updated`);
+    }
   }
 }
 
