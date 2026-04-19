@@ -2,6 +2,7 @@
 
 import Fastify from 'fastify';
 import cors from '@fastify/cors';
+import { gatewaySecretHook } from './middleware/gateway.js';
 import { config } from './config/env.js';
 import { pool } from './config/database.js';
 import { healthRoute } from './routes/health.js';
@@ -28,6 +29,8 @@ await app.register(cors, {
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true,
 });
+
+app.addHook('onRequest', gatewaySecretHook);
 
 await app.register(healthRoute);
 await app.register(decisionsRoute);
