@@ -1,6 +1,7 @@
 // Copyright (c) 2026 ckj9779. Licensed under BSL 1.1. See LICENSE.
 
 import Fastify from 'fastify';
+import cors from '@fastify/cors';
 import { config } from './config/env.js';
 import { pool } from './config/database.js';
 import { healthRoute } from './routes/health.js';
@@ -15,6 +16,17 @@ const app = Fastify({
   logger: {
     level: config.NODE_ENV === 'production' ? 'info' : 'debug',
   },
+});
+
+await app.register(cors, {
+  origin: [
+    'https://mydatasphere.dev',
+    'https://api.mydatasphere.dev',
+    'http://localhost:3000',
+  ],
+  methods: ['GET', 'HEAD', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true,
 });
 
 await app.register(healthRoute);
