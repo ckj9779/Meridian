@@ -56,15 +56,14 @@ If `gh` lacks the `user` scope, refresh first: `gh auth refresh -s user`.
 
 ### Canonical signing environment
 
-**WSL (Ubuntu on StarshipOne) is canonical.**
+**Signing architecture.** The GPG key `5B68E52AEEA21C15A7A5C868799AD4A789D27DA8` is the identity anchor for all commits authored on StarshipOne (D27, D43). The private key and `gpg-agent` both live in WSL at `/home/cjohnson/.gnupg`. Signing operations reach the keyring regardless of which shell runs `git commit`:
 
-The GPG secret key (`rsa4096/799AD4A789D27DA8`, fingerprint
-`5B68E52AEEA21C15A7A5C868799AD4A789D27DA8`, expires 2028-04-13) lives at
-`/home/cjohnson/.gnupg`. Git Bash on Windows has an isolated GPG keyring
-and **must not** be used for signed commits — the key does not exist there.
+- **Native WSL path.** `git commit` / `git tag` in a WSL terminal — signing is local to the shell.
+- **Git Bash via WSL bridge.** `git commit` / `git tag` in Git Bash (including Claude Code sessions) delegates the GPG operation to WSL through `.meridian/gpg-wsl-bridge.sh`. The resulting signed commit is byte-identical to the native WSL path.
 
-All `git commit`, `git tag`, and `git push` operations that require signing
-must run from a WSL terminal.
+**Pushing.** `git push` must run from a WSL terminal. The SSH key `starshipone-wsl` lives at `/home/cjohnson/.ssh/id_ed25519` (WSL only) per D29. Git Bash has no SSH key for GitHub — push attempts there fail with `Permission denied (publickey)`.
+
+**Attribution invariant (D43).** The shell is execution context; the key is identity. A commit signed with `799AD4A789D27DA8` attributes to Charles K. Johnson regardless of which shell invoked `git commit`. Per D75, this extends to the git attribution surface — commit authorship traces to the GPG key, not to the shell environment.
 
 ### GPG-agent cache TTL (StarshipOne WSL)
 
@@ -80,7 +79,7 @@ max-cache-ttl 28800
 
 Reload after changes: `gpgconf --kill gpg-agent && gpgconf --launch gpg-agent`
 
-The Mac Mini provisioning checklist (MER-31) should apply the same config.
+The Mac Mini provisioning checklist (MER-31) should apply the same config. For the authoritative machine register (SSH identifiers, GPG fingerprints, provisioning status), see CLAUDE.md Part 2 — Machines table.
 
 **Agent warmup:** Before a batch of commits (especially when commits will be
 issued by tools or scripts that lack a TTY), run once in an interactive
@@ -112,27 +111,23 @@ When working directly from WSL, `gpg.program = gpg` is sufficient.
 
 ## Pushing — SSH from WSL (D29)
 
-SSH from WSL is the canonical push strategy.
+**Operational status (2026-04-19):** SSH is fully operational on StarshipOne. The ed25519 key `starshipone-wsl` is registered on GitHub; `ssh -T git@github.com` returns "Hi ckj9779!". The origin URL is `git@github.com:ckj9779/Meridian.git`.
 
-The signing key lives in WSL. Pushing from WSL via SSH keeps the entire
-sign → commit → push chain in a single environment with no Windows/WSL
-credential-helper interop.
-
-### Setup (one-time)
+### Setup (one-time, per new machine)
 
 ```bash
-# Generate SSH key if not present
+# Generate SSH key (label format: <hostname>-<env> per D42)
 ssh-keygen -t ed25519 -C "mobile@charleskjohnson.com"
+# Default path: ~/.ssh/id_ed25519. Passphrase recommended.
 
 # Start agent and add key
 eval "$(ssh-agent -s)"
 ssh-add ~/.ssh/id_ed25519
 
-# Copy public key to clipboard (install xclip if needed)
+# Print public key — add to GitHub Settings → SSH and GPG keys → New SSH key
+# Label: starshipone-wsl (or <hostname>-<env> for new machines per D42)
 cat ~/.ssh/id_ed25519.pub
 ```
-
-Add the public key to GitHub at **Settings → SSH and GPG keys → New SSH key**.
 
 Switch the remote to SSH:
 
@@ -147,7 +142,97 @@ ssh -T git@github.com
 # → "Hi ckj9779! You've successfully authenticated..."
 ```
 
-All future `git push` and `git pull` operations should run from WSL.
+### Split-terminal pattern
+
+Claude Code executes in Git Bash on Windows. `git push` from Git Bash will fail with `Permission denied (publickey)` — Git Bash has no SSH key for GitHub.
+
+**Canonical workflow:**
+1. Claude Code (Git Bash) authors and GPG-signs the commit via WSL bridge.
+2. Owner opens a WSL terminal: `cd /mnt/d/Meridian && git push origin main`.
+3. GitHub shows "Verified" on the commit.
+
+This pattern expresses D43 (attribution lives with the key) and D29 (push from WSL where the SSH identity lives) in combination — each credential is reached from where it lives, and no identity crosses environment boundaries.
+
+### HTTPS fallback (deprecated)
+
+HTTPS push from Git Bash (via Windows credential manager) was used prior to Phase 2a (2026-04-19). It is **deprecated** and retained only as an emergency fallback when WSL is unavailable. To re-enable temporarily:
+
+```bash
+git remote set-url origin https://github.com/ckj9779/Meridian.git
+# Push, then restore SSH URL immediately:
+git remote set-url origin git@github.com:ckj9779/Meridian.git
+```
+
+## Machine Provisioning Checklist
+
+> The canonical machine register is CLAUDE.md Part 2 — Machines table. This checklist documents the *procedure*; the register documents the *result*.
+
+Complete these steps in order when provisioning a new development machine for Meridian.
+
+1. **Prerequisites.** Git, GPG (v2.4+), OpenSSH, WSL Ubuntu (Windows machines). Node.js per `engines` field in `package.json`.
+
+2. **Generate GPG key.** Run in WSL (or native terminal on non-Windows machines):
+   ```bash
+   gpg --full-generate-key
+   # Choose: RSA and RSA, 4096 bits, 3 years expiry
+   # Identity: Charles K. Johnson / mobile@charleskjohnson.com (per D27)
+   ```
+   Interactive — passphrase prompt required. Cannot be scripted from an agent session.
+
+3. **Add GPG public key to GitHub.** Settings → SSH and GPG keys → New GPG key. Export with:
+   ```bash
+   gpg --armor --export mobile@charleskjohnson.com
+   ```
+
+4. **Generate SSH key in WSL.**
+   ```bash
+   ssh-keygen -t ed25519 -C "mobile@charleskjohnson.com"
+   # Default path: ~/.ssh/id_ed25519. Passphrase recommended.
+   ```
+
+5. **Add SSH public key to GitHub.** Settings → SSH and GPG keys → New SSH key. Label format: `<hostname>-<env>` (e.g., `starshipone-wsl`, `macmini-native`). Print key with:
+   ```bash
+   cat ~/.ssh/id_ed25519.pub
+   ```
+
+6. **Verify SSH auth.**
+   ```bash
+   ssh -T git@github.com
+   # → "Hi ckj9779! You've successfully authenticated..."
+   ```
+
+7. **Configure git identity.**
+   ```bash
+   git config --global user.name "Charles K. Johnson"
+   git config --global user.email "mobile@charleskjohnson.com"
+   git config --global user.signingkey <KEY_ID>   # short key ID, e.g. 799AD4A789D27DA8
+   git config --global commit.gpgsign true
+   git config --global tag.gpgsign true
+   ```
+
+8. **Clone repo via SSH.**
+   ```bash
+   git clone git@github.com:ckj9779/Meridian.git
+   cd Meridian
+   git config core.hooksPath .meridian/hooks
+   ```
+
+9. **Install WSL GPG bridge (Windows / Git Bash only).** Required when Claude Code or other tools run in Git Bash:
+   ```bash
+   git config --local gpg.program ".meridian/gpg-wsl-bridge.sh"
+   ```
+   Skip this step on native WSL or macOS terminals where `gpg` is already reachable.
+
+10. **Test: signed empty commit.**
+    ```bash
+    # Author commit from WSL terminal (or Git Bash after bridge is configured):
+    git commit --allow-empty -S -m "test: signing and SSH push from <hostname>"
+    # Push from WSL terminal:
+    git push origin main
+    ```
+    Verify on GitHub that the commit shows the "Verified" badge.
+
+> Provisioning is complete only when a signed test commit from the new machine pushes successfully and shows "Verified" on GitHub. This is D43 at the verification layer — the attribution chain is not trusted until it is end-to-end verifiable.
 
 ## Branching Strategy
 
