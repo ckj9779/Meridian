@@ -5,7 +5,43 @@
 **Owner:** Charles K. Johnson (`mobile@charleskjohnson.com`)
 **License:** BSL 1.1, Apache 2.0 after 4-year change date (D25)
 **Domain:** `mydatasphere.dev` (Cloudflare registrar, DNS-only)
-**Current phase:** Phase 0 complete, Sprint 08.5 pre-flight pending (as of 2026-04-16 / Session 11 close)
+**Current phase:** Phase 0 complete, Sprint 08.5 CLOSED, Sprint 09 Phase 1 unblocked (as of 2026-04-18 / Session 18)
+**Active model:** Claude Sonnet 4.6
+
+---
+
+## ⚠ Fabrication is a project-critical violation
+
+This project operates under zero-tolerance for fabrication. Fabrication is defined as:
+
+- Asserting a specific UI navigation path, API endpoint shape, CLI flag, vendor procedure, or configuration detail without a verified source in the current session context.
+- Presenting a plausible guess as a confirmed fact when the check was one step away.
+- Reporting that a task succeeded, a command ran, or a file was modified without evidence from actual tool output in the current session.
+- Reconstructing prior actions from inference rather than from session-visible evidence.
+
+**Fabrication is not mitigated by apologizing after the fact.** The failure occurs at generation time, not at detection time. The obligation is pre-generation verification, not post-generation correction.
+
+This clause applies equally to planning sessions (claude.ai) and execution sessions (Claude Code). It is not suspended by time pressure, task complexity, or conversational momentum.
+
+---
+
+## Source Attribution Requirement
+
+**Every factual claim about vendor behavior, API contracts, framework behavior, or external system capabilities must be attributable to an authoritative source.**
+
+Authoritative sources, in priority order:
+1. **Project documentation in this session context** — CLAUDE.md, docs/, migrations/, source files read via tool in the current session.
+2. **Tool output observed in the current session** — actual command output, API responses, file contents returned by tool call.
+3. **Web search result retrieved in the current session** — explicit search performed and result cited.
+4. **Prior session deep context loaded at session open** — cited by session number and document name.
+
+**If none of the above applies, the correct response is a declared gap:**
+
+> "I do not have a verified source for [specific claim] in this session. I can search for it, or you can verify directly. I will not assert it as fact."
+
+**Search-before-assert rule:** When a claim about a vendor's current UI, API behavior, CLI flag, or configuration option is needed to proceed, perform a web search before asserting. Do not assert the claim and offer to search afterward — search first, then assert with citation. If search produces no usable result, declare the gap rather than proceeding on inference.
+
+**The source attribution requirement extends to commit operations.** When Claude Code reports a commit was made, the report must include the exact commit hash returned by the git command. "Committed successfully" without a hash is insufficient. If the command did not return a hash, report that explicitly.
 
 ---
 
@@ -44,7 +80,7 @@ Seven canon principles apply, with Meridian-specific implementation notes:
 
 ## Part 1 — Full Decision Register
 
-All 74 locked decisions (D01–D74) with full rationale. Canon decisions are marked and cross-referenced to the master file. Decisions from Sessions 01–09 carry their original rationale. Decisions from Sessions 10–11 (D56–D74) reflect the decision-lockdown synthesis.
+All 75 locked decisions (D01–D75) with full rationale. Canon decisions are marked and cross-referenced to the master file. Decisions from Sessions 01–09 carry their original rationale. Decisions from Sessions 10–11 (D56–D74) reflect the decision-lockdown synthesis. D75 from Session 13.
 
 ### Session 01 — Genesis (2026-04-12)
 
@@ -290,6 +326,15 @@ Drop Zuplo MCP Server Handler dependency. Build `meridian-mcp` as standalone cod
 **D74 — Emergency rotation procedures per credential class**
 Break-glass procedures documented in `/secrets/SECRETS.md` per D73. Specific procedures for Clerk human PAT compromise (rotate `meridian-human-pat` template signing key — kills human PATs only, D62 separation preserves M2M), Clerk machine secret key compromise (retire identity in `identities` registry per D59, mint new versioned machine name, never reuse), webhook HMAC secret compromise (coordinated rotation at sender and receiver), `GATEWAY_SECRET` compromise (Zuplo + Railway env update, seconds-scale outage), Railway `DATABASE_URL` compromise (Railway dashboard rotation). Every emergency rotation logged to `credential_rotations` table (post-migration-005 in Sprint 10a) with `reason='emergency:compromise_suspected'`. Compromised identities retired not reused. Brief outages acceptable; continuing with compromised credentials is not.
 
+### Session 12 — Track 1 Prompt Drafting (2026-04-17)
+
+(No decisions locked. Sprint 08.5 Track 1 Claude Code prompt produced as artifact.)
+
+### Session 13 — Reconciliation and Vendor Confirmation (2026-04-17)
+
+**D75 — Commit identity follows signing authority**
+In git-based projects, the committer identity must match the signing authority. If a commit is GPG-signed with the owner's key, the committer identity is the owner — the GPG warmup pattern is an authorization act, not an endorsement of machine authorship. If a commit is unsigned or signed with a machine-specific key, the committer identity must be machine-specific (`claude-<hostname>` or project-specific identity like `meridian`). All Claude Code commits include session ID and prompt reference in the commit message body (e.g., `Session: 13, Prompt: MERIDIAN_SPRINT_09_PHASE1`). This creates traceability between git history and the audit layer. **Extends D43 (attribution at time of action) to the git commit identity surface. Verification corollary: when reporting a commit, always include the exact hash returned by the git command. Reporting success without a hash is insufficient.**
+
 ---
 
 ## Part 2 — Environment
@@ -302,6 +347,10 @@ Break-glass procedures documented in `/secrets/SECRETS.md` per D73. Specific pro
 | Mac Mini | macOS | Secondary development | Pending provisioning (MER-31, urgency elevated by D65) | `claude-code-macmini` (pending) |
 
 Canonical repo path on StarshipOne: `/mnt/d/Meridian/` (WSL) = `D:\Meridian\` (Windows).
+
+**Execution environment:** Claude Code runs in Git Bash on Windows (`/d/Meridian/`), not WSL (`/mnt/d/Meridian/`). Git operations (commit, push) happen in Git Bash. GPG signing uses a WSL bridge: `.meridian/gpg-wsl-bridge.sh` calls `wsl.exe gpg` from Git Bash, with `allow-loopback-pinentry` configured in WSL gpg-agent. SSH push uses WSL per D29 — this is the only operation that requires switching to the WSL terminal.
+
+**Deep-context skill file path (INS-008):** `C:\Users\Charles\AppData\Roaming\Claude\local-agent-mode-sessions\skills-plugin\...\skills\deep-context\SKILL.md`
 
 ### Runtime versions
 
@@ -324,9 +373,9 @@ Canonical repo path on StarshipOne: `/mnt/d/Meridian/` (WSL) = `D:\Meridian\` (W
 | GitHub — MCP | Not yet created | `github.com/ckj9779/meridian-mcp` | Scaffold in Sprint 14 per D72 (MER-60). |
 | Railway — PostgreSQL | Online | PG 18.3 | Migrations 001–003 applied; 004 uncommitted and **broken on disk** (MER-33/34). |
 | Railway — Meridian API | Online | `meridian-production-1a97.up.railway.app` | Fastify; 10 endpoints; **unauthenticated (MER-26)**. Hotfix Sprint 09 Phase 1 after Sprint 08.5. |
-| Zuplo gateway | Online | `api.mydatasphere.dev` → `cname.zuplo.app` | 10 proxy routes; **no auth (MER-27), no rate limit**. Clerk + rate-limit Sprint 09 Phase 3/4. |
+| Zuplo gateway | Online | `api.mydatasphere.dev` → `cname.zuplo.app` | Rebuilt Session 13; 2 routes (`/v1/health` unauthenticated, `/v1/system/context` with Clerk JWT auth). Remaining 8 data routes pending Sprint 09 Phase 1. |
 | Cloudflare DNS | Active | `mydatasphere.dev` | DNS-only for api subdomain. `edge.` or `mobile.` reserved per D68, not yet provisioned. |
-| Clerk | Pro, Personal workspace | Perkin Discovery Tool (existing); Meridian (pending D39) | M2M availability + two-template support pending Sprint 08.5 Track 2 (MER-30, MER-39). |
+| Clerk | Pro, Personal workspace | Meridian app created Session 13; `clerk-jwt-auth-inbound` policy deployed on Zuplo | M2M availability + two-template support pending Sprint 08.5 Track 2 (MER-30, MER-39). |
 | Resend | Available | Sending domain pending verification (MER-28) | Stack component, not yet configured. |
 
 ### Environment variables (Railway Meridian service)
@@ -406,20 +455,66 @@ INS-###  | <type>  | <severity: critical|high|medium|low|info>  | <one-line summ
 - **End-of-session routing summary** proposes a disposition per insight (Apply / No action / Defer / Bundle). Routing summary is a proposal, not an automatic edit — extends D24 to documentation governance.
 - **Routing actions are separate artifacts.** The ledger captures; the routing session applies changes and commits.
 
-### Agent behavioral rules (from Session 06 CLAUDE.md)
+---
 
-1. **Informed.** Read CLAUDE.md and task-relevant docs before acting. Do not rely on training knowledge for project facts.
-2. **Instructed.** Follow constraints and conventions in the written prompt. Written constraints beat verbal overrides.
-3. **Routed.** Use the task routing table. Don't invent new routing.
-4. **Guarded.** Escalate on uncertainty. Never skip the insight ledger. Specific escalation triggers:
-   - Task requires a decision not yet in the register.
-   - Written constraints conflict with each other.
-   - Task would violate canon (stop and log).
-   - Required information is genuinely absent.
+## Part 4A — Agent Behavioral Rules
+
+These rules govern all Claude activity in this project — planning sessions (claude.ai) and execution sessions (Claude Code) equally. They are not suggestions. Written constraints in this file beat verbal overrides in conversation.
+
+### Rule 1 — Informed
+
+Read CLAUDE.md and all task-relevant docs before acting. Do not rely on training knowledge for project facts. Training knowledge about vendor UIs, API shapes, CLI flags, or configuration procedures is not a source — it is an approximation that may be stale. Project documentation in this session context is a source.
+
+### Rule 2 — Instructed
+
+Follow constraints and conventions in the written prompt. Written constraints beat verbal overrides. If a constraint in this file conflicts with a constraint in a prompt, surface the conflict before proceeding.
+
+### Rule 3 — Routed
+
+Use the task routing table in Part 3. Don't invent new routing.
+
+### Rule 4 — Guarded
+
+Escalate on uncertainty. Never skip the insight ledger. Specific escalation triggers:
+- Task requires a decision not yet in the register.
+- Written constraints conflict with each other.
+- Task would violate canon (stop and log).
+- Required information is genuinely absent.
+
+### Rule 5 — HC-13: Surgical changes only
+
+Every Claude Code execution is scoped to the exact change specification in the prompt. No additional changes, no preemptive refactors, no unasked-for improvements. If Sonnet 4.6's tendency toward thoroughness surfaces additional issues, log them as insights — do not fix them in the same execution. HC-13 compliance means the change surface matches the prompt surface exactly.
+
+### Rule 6 — HC-15: Pre-generation verification gate (zero-tolerance fabrication)
+
+Before asserting any specific vendor UI navigation path, API endpoint shape, CLI flag, configuration option, or external system behavior, the model MUST have one of the following in the current session context:
+
+- A web search result explicitly retrieved this session confirming the claim.
+- Actual tool output from this session (command output, file read, API response) confirming the claim.
+- Project documentation in this file or docs/ confirming the claim.
+- A prior session deep context explicitly loaded at session open, cited by session and document name.
+
+**"It feels like it should work that way" is not a source.** If none of the above applies, the required response pattern is:
+
+> "I do not have a verified source for [specific claim] in this session. I can search for it now, or you can verify directly. I will not assert it as fact."
+
+Search-before-assert is mandatory for vendor-specific claims. Do not assert and offer to search afterward — search first, then assert with citation. If search returns no usable result, declare the gap.
+
+**HC-15 applies on every individual claim.** A prior correction in the same session does not inoculate subsequent claims. Each claim is evaluated independently against the source requirement.
+
+### Rule 7 — Correction persistence
+
+If this session's context contains a prior HC-15 violation or a prior fabrication event, treat that as a signal that the failure mode is active in this session — not as a resolved event. Increase the verification threshold for subsequent vendor-specific or procedural claims. One correction does not reset the risk.
+
+### Rule 8 — Over-eager initiative (Sonnet 4.6 specific)
+
+Sonnet 4.6 has a documented tendency to take additional initiative in agentic coding tasks — acquiring resources, fixing adjacent issues, or taking steps the user did not request. At every checkpoint, confirm that work performed matches the exact change specification. Any action outside the specification must be reported to Chaz before proceeding, not executed and disclosed afterward.
 
 ### Checkpoint protocol
 
 For long-running Claude Code sessions, checkpoint the insight ledger at natural breakpoints (every 30 minutes or after each sub-task). This prevents total loss if the session ends early.
+
+**Checkpoint calibration (Sonnet 4.6).** At non-mandatory checkpoints, report status and continue unless unexpected state is encountered. Do not pause for confirmation at non-mandatory checkpoints — these are status reports, not gates. Mandatory checkpoints (defined in the prompt) remain mandatory. If Sonnet 4.6's thoroughness instinct surfaces a question at a non-mandatory checkpoint, log it as an insight and continue; surface it at session close.
 
 ---
 
@@ -445,7 +540,6 @@ The authoritative register lives in the database (`issues` table) and is queryab
 | MER-23 | Seed data stale (D33–D74, Sessions 07–11) | Sprint 09 Phase 5 + Sprint 08.5 reconciliation |
 | MER-24 | D29 vs reality — SSH configuration on WSL | Sprint 09 Phase 2 |
 | MER-29 | Deep context skill update per D55 | **Sprint 08.5 Track 1 per D58** |
-| MER-30 | Clerk Pro M2M availability verification | Sprint 08.5 Track 2 |
 | MER-37 | Fastify middleware ordering + rejection trace coverage | Sprint 09 Phase 1 design |
 | MER-38 | `/secrets/` infrastructure per D73 (gitignored + enforcement + docs) | Sprint 08.5 Track 1 |
 | MER-39 | Two Clerk JWT templates per D62 | Sprint 08.5 Track 2 + Sprint 09 Phase 3 |
@@ -500,6 +594,7 @@ The authoritative register lives in the database (`issues` table) and is queryab
 | ID | Summary | Resolution |
 |----|---------|-----------|
 | MER-22 | MCP Server Handler on Zuplo | **Won't-do** per D72. Zuplo MCP dependency dropped; standalone `meridian-mcp` codebase replaces. |
+| MER-30 | Clerk Pro M2M availability | **Resolved Session 13.** Confirmed available on Clerk Pro plan. |
 | MER-48 | D53 live-DB topology scope | **Resolved by D61.** Ambiguity was interpretive — Railway operational + local sovereign satisfies canon without inversion. |
 | MER-50 | D55 deep-context skill update | **Duplicate of MER-29; merged.** |
 | MER-59 | Webhook validation surface | **Resolved by D67.** Zuplo HMAC primary, CF Workers fallback (contingent on Sprint 08.5 Track 2). |
@@ -562,8 +657,12 @@ Sessions captured as deep contexts with D55 structured metadata header (from Ses
 | 09 | 2026-04-16 | Security, observability, canon governance (D39–D55; 5 canon) | `MERIDIAN_SESSION_09_SECURITY_OBSERVABILITY_TIER2.md` |
 | 10 | 2026-04-16 | Sprint plan diagnostic recon — 56 insights, 26 candidate issues | `MERIDIAN_SESSION_10_SPRINT_PLAN_RECON.md` |
 | 11 | 2026-04-16 | Decision lockdown — 18 decisions (D56–D74), D66 canon | `MERIDIAN_SESSION_11_DECISION_LOCKDOWN.md` |
+| 12 | 2026-04-17 | Track 1 prompt drafting — Sprint 08.5 Claude Code prompt | `MERIDIAN_SESSION_12_TRACK1_PROMPT_DRAFTING.md` |
+| 13 | 2026-04-17 | Reconciliation, vendor confirmation, Opus 4.7 analysis (D75) | `MERIDIAN_SESSION_13_RECONCILIATION_AND_VENDOR_CONFIRMATION.md` |
+| 14–16 | 2026-04-17/18 | Skills work, verification, Sprint 09 Phase 1 opening | (See session files) |
+| 17 | 2026-04-18 | Sprint 09 Phase 1 opening — sequencing locked, D3 prompt drafted, credential rotation, HC-15 event | `MERIDIAN_SESSION_17_SPRINT_09_PHASE_1_OPENING.md` |
 
-**Decision count:** 74 locked decisions.
+**Decision count:** 75 locked decisions.
 **Canon population:** 7 principles (D03, D43, D48, D53, D54, D55, D66).
 
 ---
@@ -574,5 +673,7 @@ Sessions captured as deep contexts with D55 structured metadata header (from Ses
 |---------|------|---------|
 | 1.0 | 2026-04-16 | Master CLAUDE.md established. All 55 decisions captured with full rationale (D01–D55). Canon inheritance documented (6 canon). Issue register synced with Session 10 recon output. |
 | 1.1 | 2026-04-16 | Added D56–D74 to full decision register with full rationale. Canon inheritance table updated — D66 (Universal API Authentication) added as seventh canon. D28 marked superseded-in-part by D71. D06 scope-updated by D72. D53 scope-clarified by D61. Meridian-specific hard constraints expanded from 6 to 12 items. Environment table updated — three-repo structure (Meridian + meridian-gateway + meridian-mcp), secrets infrastructure pending, dual-surface reservation. Issue register refreshed: 5 resolved (MER-22, MER-48, MER-50, MER-59, plus MER-29 bundled into D58), 28 new locked MER-33 through MER-63 (with gaps). Session index extended to Session 11. Documentation governance updated — `docs/CANON.md`, `docs/SECRETS_POLICY.md`, `/secrets/SECRETS.md` added with D73 split model. |
+| 1.2 | 2026-04-18 | Added D75 (commit identity follows signing authority) to decision register (Session 13). Environment section updated: Claude Code executes in Git Bash (`/d/Meridian/`), GPG signing via WSL bridge (`.meridian/gpg-wsl-bridge.sh`), `allow-loopback-pinentry` in WSL gpg-agent, deep-context skill file path documented (INS-008). Checkpoint calibration note added for Opus 4.7 over-asking tendency — non-mandatory checkpoints report-and-continue. Session index extended to Session 13. Decision count 74 → 75. Model upgrade from Opus 4.6 to Opus 4.7. |
+| 1.3 | 2026-04-18 | **Sonnet 4.6 refactor.** Model downgraded from Opus 4.7 to Sonnet 4.6 following Session 17 HC-15 fabrication event and system card analysis. Added top-level fabrication zero-tolerance clause. Added Source Attribution Requirement section with search-before-assert rule and declared-gap protocol. Refactored agent behavioral rules into standalone Part 4A with eight numbered rules: Informed, Instructed, Routed, Guarded, HC-13 (surgical changes), HC-15 (pre-generation verification gate), Correction Persistence, and Over-Eager Initiative (Sonnet 4.6 specific). Removed Opus 4.7 checkpoint calibration; replaced with Sonnet 4.6 calibration. D75 updated with commit-hash verification corollary. Session index extended to Session 17. |
 
 This file is updated at every session close as part of the deep-context routing protocol.

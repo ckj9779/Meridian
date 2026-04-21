@@ -109,6 +109,16 @@ git config --local commit.gpgsign true
 This config must be set once per fresh clone when working from Git Bash.
 When working directly from WSL, `gpg.program = gpg` is sufficient.
 
+**Sibling repos (meridian-gateway, meridian-mcp).** These repos have no `.meridian/` directory, so the relative path above won't resolve. Use the absolute path to the bridge instead:
+
+```bash
+git config --local gpg.program "/d/Meridian/.meridian/gpg-wsl-bridge.sh"
+git config --local user.signingkey 799AD4A789D27DA8
+git config --local commit.gpgsign true
+```
+
+This must be set once per fresh clone of any sibling repo. The signing key and bridge are shared; only the path changes.
+
 ## Pushing — SSH from WSL (D29)
 
 **Operational status (2026-04-19):** SSH is fully operational on StarshipOne. The ed25519 key `starshipone-wsl` is registered on GitHub; `ssh -T git@github.com` returns "Hi ckj9779!". The origin URL is `git@github.com:ckj9779/Meridian.git`.
@@ -141,6 +151,17 @@ git remote set-url origin git@github.com:ckj9779/Meridian.git
 ssh -T git@github.com
 # → "Hi ckj9779! You've successfully authenticated..."
 ```
+
+### Session agent priming
+
+The SSH agent does not persist across WSL sessions. Before each session that will require a `git push`, prime the agent in an interactive WSL terminal:
+
+```bash
+eval "$(ssh-agent -s)"
+ssh-add ~/.ssh/id_ed25519
+```
+
+Without this, `git push` from WSL will fail with `Permission denied (publickey)` even after one-time setup is complete. The agent exits when the WSL session closes; priming is required each time.
 
 ### Split-terminal pattern
 
