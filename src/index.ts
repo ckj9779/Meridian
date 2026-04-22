@@ -3,6 +3,8 @@
 import Fastify from 'fastify';
 import cors from '@fastify/cors';
 import { gatewaySecretHook } from './middleware/gateway.js';
+import { traceHook } from './middleware/trace.js';
+import { auditStartHook, auditHook } from './middleware/audit.js';
 import { config } from './config/env.js';
 import { pool } from './config/database.js';
 import { healthRoute } from './routes/health.js';
@@ -16,6 +18,11 @@ import { modelsRoute } from './routes/models.js';
 const app = Fastify({
   logger: {
     level: config.NODE_ENV === 'production' ? 'info' : 'debug',
+    mixin: () => {
+      // traceId and callerIdentity are attached by middleware;
+      // they are undefined before those hooks fire (startup logs).
+      return {};
+    },
   },
 });
 
@@ -30,7 +37,10 @@ await app.register(cors, {
   credentials: true,
 });
 
+app.addHook('onRequest', traceHook);
+app.addHook('onRequest', auditStartHook);
 app.addHook('onRequest', gatewaySecretHook);
+app.addHook('onResponse', auditHook);
 
 await app.register(healthRoute);
 await app.register(decisionsRoute);
