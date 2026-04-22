@@ -29,7 +29,7 @@ CREATE INDEX IF NOT EXISTS idx_identities_active ON identities(active) WHERE act
 
 -- Seed bootstrap identities (D59). ON CONFLICT DO NOTHING for re-runnability.
 INSERT INTO identities (identity_string, class, description) VALUES
-    ('anonymous',                       'system',  'Reserved identity for pre-authentication rejections (D59)'),
+    ('system:anonymous',                'system',  'Reserved identity for pre-authentication rejections (D59)'),
     ('machine:starshipone-claude-code', 'machine', 'Claude Code on StarshipOne WSL (D42)'),
     ('machine:meridian-api',            'machine', 'Meridian API service on Railway (D47)'),
     ('human:chaz-clerk-pat',            'human',   'Human identity — Clerk PAT authenticated (D40)')
@@ -271,7 +271,11 @@ CREATE TABLE IF NOT EXISTS agent_events (
                         'error',
                         'status_change',
                         'harness_block',
-                        'human_intervention'
+                        'human_intervention',
+                        'stage_entry',
+                        'stage_exit',
+                        'stage_failure',
+                        'stage_retry'
                     )),
     event_data      JSONB NOT NULL DEFAULT '{}'::jsonb,  -- Event-type-specific payload
     sequence_num    INTEGER NOT NULL,       -- Ordering within the session
@@ -639,9 +643,6 @@ ON CONFLICT (mission_type, tier) DO NOTHING;
 -- ============================================================================
 -- Schema migration record
 -- ============================================================================
--- NOTE: This migration has not yet been applied to Railway.
--- Apply via: psql $DATABASE_URL < migrations/004_orchestration_layer.sql
-
 INSERT INTO schema_migrations (version, applied_at) VALUES ('004', NOW());
 
 COMMIT;
