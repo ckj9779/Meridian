@@ -3,6 +3,7 @@
 
 import { FastifyRequest, FastifyReply } from 'fastify';
 import { ulid } from 'ulid';
+import { requestContext } from '../lib/request-context.js';
 
 /**
  * Trace middleware — D50 (ULID trace IDs).
@@ -23,4 +24,8 @@ export async function traceHook(
   request.traceId = typeof injected === 'string' && injected.length > 0
     ? injected
     : ulid();
+  requestContext.enterWith({
+    traceId: request.traceId,
+    callerIdentity: request.callerIdentity ?? null,
+  });
 }

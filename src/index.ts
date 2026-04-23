@@ -14,14 +14,18 @@ import { sessionsRoute } from './routes/sessions.js';
 import { contextRoute } from './routes/context.js';
 import { stackRoute } from './routes/stack.js';
 import { modelsRoute } from './routes/models.js';
+import { requestContext } from './lib/request-context.js';
 
 const app = Fastify({
   logger: {
     level: config.NODE_ENV === 'production' ? 'info' : 'debug',
     mixin: () => {
-      // traceId and callerIdentity are attached by middleware;
-      // they are undefined before those hooks fire (startup logs).
-      return {};
+      const ctx = requestContext.getStore();
+      if (!ctx) return {};
+      return {
+        traceId: ctx.traceId,
+        callerIdentity: ctx.callerIdentity,
+      };
     },
   },
 });
