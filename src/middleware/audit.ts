@@ -79,14 +79,12 @@ export async function auditStartHook(
  * Registered on onResponse — fires after response is sent.
  * Fire-and-forget INSERT; audit failures are logged but never fatal.
  */
-export function auditHook(
+export async function auditHook(
   request: FastifyRequest,
   reply: FastifyReply,
-  done: () => void
-): void {
+): Promise<void> {
   // Skip audit for bypassed paths
   if (BYPASS_PATHS.has(request.routeOptions?.url ?? request.url)) {
-    done();
     return;
   }
 
@@ -109,32 +107,33 @@ export function auditHook(
     ? 'clerk_pat'
     : 'gateway_secret_only';
 
-  // Fire-and-forget — audit failure must not affect responses
-  pool.query(
-    `INSERT INTO audit_events
-       (id, trace_id, timestamp, caller_identity, caller_type,
-        auth_method, http_method, route, status_code, duration_ms,
-        request_body_hash)
-     VALUES
-       ($1, $2, NOW(), $3, $4, $5, $6, $7, $8, $9, $10)`,
-    [
-      ulid(),
-      request.traceId,
-      callerIdentity ?? 'anonymous',
-      callerType,
-      authMethod,
-      request.method,
-      request.routeOptions?.url ?? request.url,
-      statusCode,
-      durationMs,
-      hashBody(request.method, request.body),
-    ]
-  ).catch((err: unknown) => {
+  // Awaited — onResponse hooks must return a Promise, not use done()
+  // Audit failure is caught and logged but never fatal to the response.
+  try {
+    await pool.query(
+      `INSERT INTO audit_events
+         (id, trace_id, timestamp, caller_identity, caller_type,
+          auth_method, http_method, route, status_code, duration_ms,
+          request_body_hash)
+       VALUES
+         ($1, $2, NOW(), $3, $4, $5, $6, $7, $8, $9, $10)`,
+      [
+        ulid(),
+        request.traceId,
+        callerIdentity ?? 'anonymous',
+        callerType,
+        authMethod,
+        request.method,
+        request.routeOptions?.url ?? request.url,
+        statusCode,
+        durationMs,
+        hashBody(request.method, request.body),
+      ]
+    );
+  } catch (err: unknown) {
     request.log.error(
       { err, traceId: request.traceId },
       'audit_events INSERT failed'
     );
-  });
-
-  done();
+  }
 }
