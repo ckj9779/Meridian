@@ -1,5 +1,4 @@
-// Copyright (c) 2026 Charles K. Johnson
-// SPDX-License-Identifier: BSL-1.1
+// Copyright (c) 2026 ckj9779. Licensed under BSL 1.1. See LICENSE.
 
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 
