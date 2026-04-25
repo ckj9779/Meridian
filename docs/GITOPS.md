@@ -491,6 +491,59 @@ Meridian processes deeply personal data across four life domains. The repository
 4. Rotate any exposed credentials immediately.
 5. Document the incident.
 
+## Sibling Repository Configuration
+
+When configuring GPG signing in a sibling repository (e.g., `meridian-gateway`,
+future `meridian-mcp`), the `gpg.program` path must use the WSL path format, not
+the Windows path format. These repos have no `.meridian/` directory, so the
+relative path used in the primary Meridian repo does not resolve.
+
+**Correct (WSL path — use when running git from WSL):**
+```bash
+git config --local gpg.program /mnt/d/Meridian/.meridian/gpg-wsl-bridge.sh
+```
+
+**Incorrect (Windows path — WSL cannot resolve this format):**
+```bash
+git config --local gpg.program D:/Meridian/.meridian/gpg-wsl-bridge.sh
+```
+
+This applies to any git operation run from WSL. The bridge script is located in
+the primary Meridian repo and shared across all project repos.
+
+For git operations run from Git Bash (not WSL), use the Git Bash-style absolute
+path `/d/Meridian/.meridian/gpg-wsl-bridge.sh` instead (see "Claude Code GPG
+bridge" section above for the per-clone setup).
+
+Always set the signing key and enforce signed commits in each sibling repo:
+```bash
+git config --local user.signingkey 799AD4A789D27DA8
+git config --local commit.gpgsign true
+```
+
+### SSH Remote for All Project Repos
+
+All project repositories must use SSH remotes, not HTTPS. D29 applies to all
+Meridian project repos, not only the primary repo.
+
+**Set SSH remote:**
+```bash
+git remote set-url origin git@github.com:ckj9779/<repo-name>.git
+```
+
+**Verify:**
+```bash
+git remote -v
+```
+
+HTTPS remotes will fail for signed pushes from WSL because the GPG agent and SSH
+agent are WSL-native. Both root causes were discovered during Sprint 10 Phase 4
+(Session 24) when configuring `meridian-gateway`. GPG signing and SSH push both
+require WSL-native tooling; Git Bash has neither GitHub SSH key nor the keyring
+for GPG.
+
+---
+
 ## CI/CD Pipeline (Planned)
 
 Not yet established. When implemented, the pipeline should:
