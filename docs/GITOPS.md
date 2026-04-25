@@ -493,27 +493,29 @@ Meridian processes deeply personal data across four life domains. The repository
 
 ## Sibling Repository Configuration
 
-When configuring GPG signing in a sibling repository (e.g., `meridian-gateway`,
-future `meridian-mcp`), the `gpg.program` path must use the WSL path format, not
-the Windows path format. These repos have no `.meridian/` directory, so the
-relative path used in the primary Meridian repo does not resolve.
+When configuring GPG signing in a sibling repository (e.g.,
+`meridian-gateway`, future `meridian-mcp`), the `gpg.program` path
+depends on which shell is being used for git operations.
 
-**Correct (WSL path — use when running git from WSL):**
-```bash
-git config --local gpg.program /mnt/d/Meridian/.meridian/gpg-wsl-bridge.sh
+**From Git Bash (StarshipOne — standard commit path):**
+```
+git config gpg.program D:/Meridian/.meridian/gpg-wsl-bridge.sh
 ```
 
-**Incorrect (Windows path — WSL cannot resolve this format):**
-```bash
-git config --local gpg.program D:/Meridian/.meridian/gpg-wsl-bridge.sh
+**From WSL (StarshipOne — SSH push path only):**
+```
+git config gpg.program /mnt/d/Meridian/.meridian/gpg-wsl-bridge.sh
 ```
 
-This applies to any git operation run from WSL. The bridge script is located in
-the primary Meridian repo and shared across all project repos.
+The Meridian primary repo uses a relative path (`.meridian/gpg-wsl-bridge.sh`)
+because the bridge script lives in that repo's root. Sibling repos must
+use an absolute path — the bridge script does not exist in their working
+tree. Use the Win32 path for Git Bash and the POSIX path for WSL.
 
-For git operations run from Git Bash (not WSL), use the Git Bash-style absolute
-path `/d/Meridian/.meridian/gpg-wsl-bridge.sh` instead (see "Claude Code GPG
-bridge" section above for the per-clone setup).
+The original broken value set by automated tooling was the POSIX path
+(`/mnt/d/…`) used in a Git Bash context — this fails silently. The
+correct Git Bash value (`D:/Meridian/…`) was confirmed working by commit
+`b36847c` in `meridian-gateway` (Session 27).
 
 Always set the signing key and enforce signed commits in each sibling repo:
 ```bash
