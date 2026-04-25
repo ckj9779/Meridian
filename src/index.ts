@@ -14,6 +14,7 @@ import { sessionsRoute } from './routes/sessions.js';
 import { contextRoute } from './routes/context.js';
 import { stackRoute } from './routes/stack.js';
 import { modelsRoute } from './routes/models.js';
+import { auditRoute } from './routes/audit.js';
 import { requestContext } from './lib/request-context.js';
 
 const app = Fastify({
@@ -53,6 +54,7 @@ await app.register(sessionsRoute);
 await app.register(contextRoute);
 await app.register(stackRoute);
 await app.register(modelsRoute);
+await app.register(auditRoute, { prefix: '/v1' });
 
 async function shutdown(signal: string): Promise<void> {
   app.log.info({ signal }, 'Shutdown signal received');
