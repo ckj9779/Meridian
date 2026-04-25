@@ -11,6 +11,7 @@ vi.mock('pino', () => ({
     info: vi.fn(),
     error: vi.fn(),
     debug: vi.fn(),
+    warn: vi.fn(),
   })),
 }));
 
@@ -46,10 +47,19 @@ describe('notifications service', () => {
     });
   });
 
-  it('throws on initialisation when RESEND_API_KEY is missing', async () => {
+  it('suppresses notification when RESEND_API_KEY is missing', async () => {
     vi.stubEnv('RESEND_API_KEY', '');
     vi.resetModules();
-    await expect(import('../notifications.js')).rejects.toThrow('RESEND_API_KEY');
+    // Module must load without throwing; sendNotification resolves silently
+    const { sendNotification } = await import('../notifications.js');
+    await expect(
+      sendNotification({
+        to: 'test@example.com',
+        subject: 'Subject',
+        body: 'Body',
+        alertType: 'AUTH_FAILURE_SPIKE',
+      }),
+    ).resolves.toBeUndefined();
   });
 
   it('catches Resend API error and does not throw', async () => {
@@ -67,5 +77,20 @@ describe('notifications service', () => {
         alertType: 'UNKNOWN_CALLER',
       }),
     ).resolves.toBeUndefined();
+  });
+
+  it('sendAlert resolves with correct subject for COLD_STORAGE_UNMOUNTED', async () => {
+    const mockSend = vi.fn().mockResolvedValue({ data: { id: 'email_xyz' }, error: null });
+    const { Resend } = await import('resend');
+    vi.mocked(Resend).mockImplementation(class { emails = { send: mockSend }; } as never);
+
+    const { sendAlert } = await import('../notifications.js');
+    await sendAlert('COLD_STORAGE_UNMOUNTED', { target: 'backup-drive', mount_path: '/mnt/backup' });
+
+    expect(mockSend).toHaveBeenCalledWith(
+      expect.objectContaining({
+        subject: 'Meridian — Cold storage drive not accessible',
+      }),
+    );
   });
 });
