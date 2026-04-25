@@ -26,17 +26,20 @@ Meridian is a six-layer agentic operating system built on a single PostgreSQL in
 ┌─────────────────────────────────────────────────────────────┐
 │  LAYER 2: MEMORY — PostgreSQL + AGE on Railway              │
 │  Graph topology │ Relational tables │ Episodic logs │ FTS   │
-│  15 tables: sources, scan_runs, raw_items,                  │
+│  22 tables: sources, scan_runs, raw_items,                  │
 │  staged_extractions, briefings, agent_events, corrections,  │
 │  escalations, mission_policies, model_preferences,          │
-│  system_context, sessions, decisions, issues, tech_watch    │
+│  system_context, sessions, decisions, issues, tech_watch,   │
+│  stack_components, identities, agent_missions, policies,    │
+│  mission_metrics, audit_events, credential_rotations,       │
+│  storage_targets (migrations 001–006)                        │
 └──────────────────────────┬──────────────────────────────────┘
                            │ retrieval queries
                            ▼
 ┌─────────────────────────────────────────────────────────────┐
 │  LAYER 3: SKILLS                                            │
 │  Three lenses │ Source scanners │ Extraction │ External tools│
-│  All exposed as MCP tools via Zuplo                         │
+│  MCP tools via meridian-mcp (D72); Zuplo = HTTP gateway only │
 └──────────────────────────┬──────────────────────────────────┘
                            │ skill invocations pass through
                            ▼
@@ -85,7 +88,7 @@ Meridian is a six-layer agentic operating system built on a single PostgreSQL in
 |-----------|-----------|---------|------|
 | Canonical store | PostgreSQL 16 + Apache AGE | Railway | Graph (Cypher), relational (SQL), FTS (tsvector/GIN), document (jsonb) |
 | API service | Node.js | Railway | Source CRUD, webhook receiver, lens endpoints, staging mgmt, graph writes |
-| API gateway | Zuplo | Zuplo cloud (edge) | Auth, rate limiting, semantic caching, MCP exposure, model routing, observability |
+| API gateway | Zuplo | Zuplo cloud (edge) | Auth, rate limiting, trace injection, policy pipeline, model routing, observability. MCP hosting is **not** Zuplo's responsibility (D72). |
 | Agent execution | Anthropic Agents API | Anthropic managed | Agent definitions, sessions, environments, events, checkpointing |
 | Frontend | Next.js | Vercel | Three-function interface, agent monitor, model settings, cost dashboard |
 | Ingestion (email) | Python | Railway (or local) | .eml/.html parsing, extraction API calls, staging writes |

@@ -95,7 +95,7 @@ COMMIT;
 
 ---
 
-## Relational Schema — 16 Tables
+## Relational Schema — 22 Tables
 
 ### sources
 Intelligence source definitions. Each row is a mission objective for a scanning agent.
@@ -510,6 +510,83 @@ CREATE UNIQUE INDEX idx_context_active ON system_context(active) WHERE active = 
 -- Only one default model per task type
 CREATE UNIQUE INDEX idx_preferences_default ON model_preferences(task_type) WHERE is_default = true;
 ```
+
+---
+
+---
+
+## Migration 006 Tables (Audit Layer)
+
+Added in Sprint 10. These three tables support observability (D43, D48, D54) and cold storage (D49, D53).
+
+### audit_events
+
+Per-request attribution log. One row per non-bypassed HTTP request reaching the Meridian API.
+
+**PK design:** `id TEXT PRIMARY KEY` — application-generated ULID (time-sortable; no DB default by design so middleware failure is loud, not silent).
+
+**Retention thresholds (enforced by `audit-export.ts`):**
+- Rows where `caller_type IN ('m2m_agent', 'm2m_meridian')`: 30-day retention.
+- All other rows: 7-day retention.
+
+Key columns:
+
+| Column | Type | Description |
+|--------|------|-------------|
+| `id` | TEXT (ULID) | Primary key — application generated |
+| `trace_id` | TEXT | Correlation ID from Zuplo `X-Trace-Id` header |
+| `timestamp` | TIMESTAMPTZ | Request completion time (server clock) |
+| `caller_identity` | TEXT | JWT `sub` claim, or `'anonymous'` if unauthenticated |
+| `caller_type` | TEXT | `human_pat` / `m2m_claude_code` / `m2m_agent` / `m2m_meridian` / `anonymous` |
+| `auth_method` | TEXT | `clerk_pat` / `clerk_m2m_jwt` / `clerk_session` / `gateway_secret_only` |
+| `http_method` | TEXT | HTTP verb |
+| `route` | TEXT | Fastify route pattern (e.g. `/api/decisions`) |
+| `status_code` | INTEGER | HTTP response status |
+| `duration_ms` | INTEGER | Request duration |
+| `request_body_hash` | TEXT | SHA-256 of request body (write operations only) |
+
+Indexes: `trace_id`, `caller_identity`, `timestamp`, `http_method`.
+
+### credential_rotations
+
+Lifecycle tracking for PATs, M2M secrets, and API keys. One row per credential, updated in place on rotation. D40, D44, D74.
+
+Key columns:
+
+| Column | Type | Description |
+|--------|------|-------------|
+| `credential_name` | TEXT (UNIQUE) | Credential identifier (e.g. `CLERK_HUMAN_PAT`) |
+| `credential_type` | TEXT | `human_pat` / `m2m_machine_secret` / `backend_secret` / `api_key` |
+| `mint_date` | DATE | When current credential was created |
+| `expiry_date` | DATE | Expiry date (null if non-expiring) |
+| `rotation_cadence_days` | INTEGER | Target rotation interval in days |
+| `status` | TEXT | `active` / `rotated` / `revoked` / `expired` |
+
+**Bootstrap rows seeded:**
+- `CLERK_HUMAN_PAT` — expiry 2026-05-21, 30-day cadence
+- `BACKEND_SECRET` — no expiry, 90-day cadence
+- `CLERK_SECRET_KEY` — no expiry, 90-day cadence
+
+Alert checks in `src/services/alerts.ts` query this table for upcoming expirations.
+
+### storage_targets
+
+Registry of registered local cold-storage drives. D49 (local cold storage primary), D53 (sovereignty).
+
+The `audit-export.ts` script reads this table to resolve the output directory and updates `is_accessible` and `last_seen` on every run by probing `mount_path` via `fs.existsSync()`.
+
+Key columns:
+
+| Column | Type | Description |
+|--------|------|-------------|
+| `drive_id` | TEXT (UNIQUE) | Physical drive identifier (serial or label) |
+| `label` | TEXT | Human-readable drive name |
+| `mount_path` | TEXT | Absolute path to mount point |
+| `last_seen` | TIMESTAMPTZ | Last confirmed accessible timestamp |
+| `encryption_status` | TEXT | `encrypted` / `unencrypted` / `unknown` |
+| `is_accessible` | BOOLEAN | Updated by export script on each run |
+
+When `is_accessible = false` or no row exists, the export script sends `COLD_STORAGE_UNMOUNTED` alert and exits without writing any data.
 
 ---
 

@@ -368,11 +368,11 @@ Canonical repo path on StarshipOne: `/mnt/d/Meridian/` (WSL) = `D:\Meridian\` (W
 
 | Component | Status | URL / identifier | Notes |
 |-----------|--------|------------------|-------|
-| GitHub — Meridian | Public, main @ `b65cf75` | `github.com/ckj9779/Meridian` | 8 signed commits. Branch protection pending D65 (after Sprint 09 Phase 2). |
+| GitHub — Meridian | Public, main @ `3283f9e` | `github.com/ckj9779/Meridian` | Sprint 10 Phases 1–5 complete. Branch protection pending D65 (after Sprint 09 Phase 2). |
 | GitHub — Gateway | Public | `github.com/ckj9779/meridian-gateway` | 2 commits; 10 proxy routes. Branch protection pending D65. |
 | GitHub — MCP | Not yet created | `github.com/ckj9779/meridian-mcp` | Scaffold in Sprint 14 per D72 (MER-60). |
 | Railway — PostgreSQL | Online | PG 18.3 | Migrations 001–003 applied; 004 uncommitted and **broken on disk** (MER-33/34). |
-| Railway — Meridian API | Online | `meridian-production-1a97.up.railway.app` | Fastify; 10 endpoints; **unauthenticated (MER-26)**. Hotfix Sprint 09 Phase 1 after Sprint 08.5. |
+| Railway — Meridian API | Online | `meridian-production-1a97.up.railway.app` | Fastify; authenticated, audit middleware live. Sprint 10 Phases 1–5 complete. |
 | Zuplo gateway | Online | `api.mydatasphere.dev` → `cname.zuplo.app` | Rebuilt Session 13; 2 routes (`/v1/health` unauthenticated, `/v1/system/context` with Clerk JWT auth). Remaining 8 data routes pending Sprint 09 Phase 1. |
 | Cloudflare DNS | Active | `mydatasphere.dev` | DNS-only for api subdomain. `edge.` or `mobile.` reserved per D68, not yet provisioned. |
 | Clerk | Pro, Personal workspace | Meridian app created Session 13; `clerk-jwt-auth-inbound` policy deployed on Zuplo | M2M availability + two-template support pending Sprint 08.5 Track 2 (MER-30, MER-39). |
@@ -385,10 +385,11 @@ Canonical repo path on StarshipOne: `/mnt/d/Meridian/` (WSL) = `D:\Meridian\` (W
 | `DATABASE_URL` | Railway PostgreSQL connection | Set |
 | `NODE_ENV` | Node environment | Set |
 | `PORT` | Fastify listen port | Set |
-| `GATEWAY_SECRET` | Shared secret from Zuplo (Layer A) | **Pending Sprint 09 Phase 1** |
+| `BACKEND_SECRET` | Shared secret from Zuplo (Layer A) | Set |
 | `CLERK_SECRET_KEY` | Server-side Clerk operations | **Pending Sprint 09 Phase 3** |
 | `CLERK_FRONTEND_API_URL` | Clerk JWT validation | **Pending Sprint 09 Phase 3** |
-| `RESEND_API_KEY` | Outbound notifications | **Pending Sprint 10b Phase 5** |
+| `RESEND_API_KEY` | Resend sending API key (`notifications.mydatasphere.dev`) | Set |
+| `COLD_STORAGE_PATH` | Cold storage output directory override (optional) | Optional |
 
 `.env.example` does not yet exist in repo — pending Sprint 08.5 Track 1 (MER-40).
 
