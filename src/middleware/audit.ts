@@ -5,6 +5,7 @@ import { FastifyRequest, FastifyReply } from 'fastify';
 import { ulid } from 'ulid';
 import { createHash } from 'crypto';
 import { pool } from '../config/database.js';
+import { requestContext } from '../lib/request-context.js';
 
 /**
  * Audit middleware — D43 (attribution), D48 (observability cascade),
@@ -64,7 +65,10 @@ function hashBody(method: string, body: unknown): string | null {
 }
 
 /**
- * Capture request start time for duration_ms calculation.
+ * Capture request start time and resolve caller identity early so the pino
+ * mixin can read callerIdentity for log lines emitted during request handling.
+ * traceHook runs first and sets callerIdentity: null in the store. This hook
+ * updates the store once the Authorization header is readable.
  * Must be registered on onRequest BEFORE gatewaySecretHook.
  */
 export async function auditStartHook(
@@ -72,6 +76,14 @@ export async function auditStartHook(
   _reply: FastifyReply
 ): Promise<void> {
   request.startMs = Date.now();
+  const callerIdentity = extractSub(
+    request.headers['authorization'] as string | undefined,
+  );
+  request.callerIdentity = callerIdentity;
+  const ctx = requestContext.getStore();
+  if (ctx) {
+    ctx.callerIdentity = callerIdentity;
+  }
 }
 
 /**
@@ -88,9 +100,7 @@ export async function auditHook(
     return;
   }
 
-  const callerIdentity = extractSub(
-    request.headers['authorization'] as string | undefined
-  );
+  const callerIdentity = request.callerIdentity ?? null;
   const durationMs = Date.now() - (request.startMs ?? Date.now());
   const statusCode = reply.statusCode;
 
